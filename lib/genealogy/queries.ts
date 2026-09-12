@@ -5,8 +5,8 @@ import { canAccessLevel, type Actor } from "@/lib/authorization";
 const personInclude = {
   familyBranch: true,
   sources: { include: { source: true } },
-  parentLinks: { include: { parent: true } },
-  childLinks: { include: { child: true } },
+  parentLinks: { include: { child: true } },
+  childLinks: { include: { parent: true } },
   spouseLinksAsA: { include: { personB: true } },
   spouseLinksAsB: { include: { personA: true } },
 } as const;
@@ -67,10 +67,10 @@ export async function getPersonById(actor: Actor, id: string) {
   return {
     ...person,
     sources,
-    parents: person.parentLinks
+    parents: person.childLinks
       .filter((link) => canAccessLevel(actor, link.parent.confidentialityLevel))
       .map((link) => ({ ...link.parent, parentRole: link.parentRole, kinshipKind: link.kinshipKind })),
-    children: person.childLinks
+    children: person.parentLinks
       .filter((link) => canAccessLevel(actor, link.child.confidentialityLevel))
       .map((link) => ({ ...link.child, parentRole: link.parentRole })),
     spouses: [
