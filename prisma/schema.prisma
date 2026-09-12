@@ -1,0 +1,275 @@
+// TOURÉ FAMILY HERITAGE — schéma relationnel initial
+// Conçu pour évoluer (héritage, validation, réunions) sans réécriture.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums partagés
+// ---------------------------------------------------------------------------
+
+enum ConfidentialityLevel {
+  C0 // Public — visible sans authentification
+  C1 // Grande Famille — membres authentifiés et reconnus
+  C2 // Descendants directs — statut généalogique, pas la présence en réunion
+  C3 // Comité restreint
+}
+
+enum ValidationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PUBLISHED
+}
+
+enum ConfidenceLevel {
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  UNKNOWN
+}
+
+/// Autorisation applicative (ce que l'utilisateur PEUT faire).
+enum AppRole {
+  GUEST
+  FAMILY_MEMBER
+  COMMITTEE_MEMBER
+  ADMIN
+}
+
+/// Statut généalogique (qui la personne EST dans la lignée).
+/// Séparé du rôle : un descendant direct n'est pas automatiquement membre du comité.
+enum GenealogicalStatus {
+  UNLINKED
+  FAMILY_MEMBER
+  DIRECT_DESCENDANT
+}
+
+enum ParentRole {
+  MOTHER
+  FATHER
+}
+
+enum KinshipKind {
+  BIOLOGICAL
+  ADOPTIVE
+  FOSTER
+  STEP
+  OTHER
+}
+
+enum SpouseKind {
+  MARRIAGE
+  UNION
+  OTHER
+}
+
+enum SourceType {
+  ORAL_TESTIMONY
+  FAMILY_ARCHIVE
+  OFFICIAL_DOCUMENT
+  HISTORICAL_BOOK
+  ACADEMIC_PUBLICATION
+  ADMINISTRATIVE_DOCUMENT
+  PHOTOGRAPH
+  FAMILY_WITNESS
+  OTHER
+}
+
+// ---------------------------------------------------------------------------
+// Utilisateur applicatif
+// Clerk identifie. Cette table autorise.
+// Cardinalité : 1 User ↔ 0..1 Person (fiche généalogique liée)
+// ---------------------------------------------------------------------------
+
+model User {
+  id                  String              @id @default(cuid())
+  clerkUserId         String              @unique
+  email               String?
+  firstName           String?
+  lastName            String?
+  role                AppRole             @default(GUEST)
+  genealogicalStatus  GenealogicalStatus  @default(UNLINKED)
+  personId            String?             @unique
+  person              Person?             @relation(fields: [personId], references: [id], onDelete: SetNull)
+  lastSignedInAt      DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  auditLogs           AuditLog[]
+
+  @@index([role])
+  @@index([genealogicalStatus])
+  @@index([email])
+}
+
+// ---------------------------------------------------------------------------
+// Branches familiales
+// 1 FamilyBranch → N Person
+// ---------------------------------------------------------------------------
+
+model FamilyBranch {
+  id                    String                @id @default(cuid())
+  name                  String
+  slug                  String                @unique
+  description           String?
+  originPlace           String?
+  confidentialityLevel  ConfidentialityLevel  @default(C0)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  people                Person[]
+
+  @@index([confidentialityLevel])
+}
+
+// ---------------------------------------------------------------------------
+// Personne — cœur généalogique
+// Relations : 0..2 parents (via ParentChild), 0..N enfants, 0..N conjoints
+// ---------------------------------------------------------------------------
+
+model Person {
+  id                    String                @id @default(cuid())
+  firstName             String
+  lastName              String
+  otherNames            String?
+  gender                Gender                @default(UNKNOWN)
+  birthDate             DateTime?             @db.Date
+  birthDateText         String?
+  birthPlace            String?
+  deathDate             DateTime?             @db.Date
+  deathDateText         String?
+  deathPlace            String?
+  occupation            String?
+  cityOfResidence       String?
+  biography             String?
+  isRoot                Boolean               @default(false)
+  familyBranchId        String?
+  familyBranch          FamilyBranch?         @relation(fields: [familyBranchId], references: [id], onDelete: SetNull)
+  confidentialityLevel  ConfidentialityLevel  @default(C1)
+  validationStatus      ValidationStatus      @default(DRAFT)
+  confidenceLevel       ConfidenceLevel       @default(MEDIUM)
+  portraitUrl           String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  user                  User?
+
+  parentLinks           ParentChild[]         @relation("ParentToChildren")
+  childLinks            ParentChild[]         @relation("ChildToParents")
+  spouseLinksAsA        SpouseRelationship[]  @relation("SpouseA")
+  spouseLinksAsB        SpouseRelationship[]  @relation("SpouseB")
+  sources               PersonSource[]
+
+  @@index([lastName, firstName])
+  @@index([lastName])
+  @@index([familyBranchId])
+  @@index([confidentialityLevel])
+  @@index([validationStatus])
+  @@index([isRoot])
+}
+
+// Parent ↔ enfant. Unique (parent, enfant, rôle) : un père et une mère distincts.
+// onDelete Cascade : supprimer une personne retire ses liens, pas le reste de l'arbre.
+model ParentChild {
+  id            String      @id @default(cuid())
+  parentId      String
+  childId       String
+  parentRole    ParentRole
+  kinshipKind   KinshipKind @default(BIOLOGICAL)
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  parent        Person      @relation("ParentToChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  child         Person      @relation("ChildToParents", fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, childId, parentRole])
+  @@index([childId])
+  @@index([parentId])
+}
+
+// Conjoint. personIdA < personIdB est imposé côté application.
+model SpouseRelationship {
+  id          String     @id @default(cuid())
+  personIdA   String
+  personIdB   String
+  kind        SpouseKind @default(MARRIAGE)
+  startDate   DateTime?  @db.Date
+  endDate     DateTime?  @db.Date
+  place       String?
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  personA     Person     @relation("SpouseA", fields: [personIdA], references: [id], onDelete: Cascade)
+  personB     Person     @relation("SpouseB", fields: [personIdB], references: [id], onDelete: Cascade)
+
+  @@unique([personIdA, personIdB])
+  @@index([personIdB])
+}
+
+// ---------------------------------------------------------------------------
+// Sources et confiance — une information n'est pas un fait tant qu'elle n'est pas sourcée
+// ---------------------------------------------------------------------------
+
+model Source {
+  id                    String                @id @default(cuid())
+  title                 String
+  type                  SourceType
+  description           String?
+  url                   String?
+  author                String?
+  publishedAtText       String?
+  confidentialityLevel  ConfidentialityLevel  @default(C0)
+  confidenceLevel       ConfidenceLevel       @default(MEDIUM)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  people                PersonSource[]
+
+  @@index([type])
+  @@index([confidentialityLevel])
+}
+
+model PersonSource {
+  id        String   @id @default(cuid())
+  personId  String
+  sourceId  String
+  notes     String?
+  createdAt DateTime @default(now())
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  source    Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, sourceId])
+}
+
+// ---------------------------------------------------------------------------
+// Journal d'audit — opérations sensibles (création, modification, confidentialité)
+// User optionnel : actions système. Pas de cascade destructive sur l'historique.
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  actorUserId    String?
+  actor          User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  action         String
+  entityType     String
+  entityId       String
+  previousValue  Json?
+  newValue       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorUserId])
+  @@index([createdAt])
+}
