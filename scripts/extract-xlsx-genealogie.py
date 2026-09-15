@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from pathlib import Path
 
 import openpyxl
@@ -42,6 +43,186 @@ def gender_from(sex: str | None, first_name: str) -> str:
     if first_name.upper().startswith("MÂ") or first_name.upper().startswith("MA "):
         return "FEMALE"
     return "UNKNOWN"
+
+
+def fold_name(value: str) -> str:
+    stripped = "".join(
+        char for char in unicodedata.normalize("NFKD", value) if not unicodedata.combining(char)
+    )
+    return stripped.casefold().replace("’", "'").strip()
+
+
+def slugify(value: str) -> str:
+    folded = fold_name(value)
+    return re.sub(r"[^a-z0-9]+", "-", folded).strip("-")
+
+
+# Prénoms composés mandingues : [mère] [nom de l'enfant]. Listes Sanankoro, à valider.
+# Alias : graphies voisines rattachées à une même épouse.
+MOTHER_PREFIXES = [
+    "Sininkoro Fatouma",
+    "Fatoumatagbé",
+    "Djimalassaran",
+    "Masséfarima",
+    "Kalafatouma",
+    "Samanténin",
+    "Linkossaran",
+    "Fabalasséré",
+    "Flassaran",
+    "Flasaran",
+    "Massitan",
+    "Assiatou",
+    "Managbé",
+    "Diaoulen",
+    "Saranké",
+    "Kariata",
+    "Tiranké",
+    "Mamien",
+    "Moyima",
+    "Ramata",
+    "Bintou",
+    "Fatoumata",
+    "Fatouma",
+    "Bagbé",
+    "Souaré",
+    "Mossoken",
+    "Séouka",
+    "Mafila",
+    "Sonafin",
+    "Massé",
+    "Assa",
+    "Séré",
+    "Sogbé",
+    "Kanty",
+    "Minata",
+    "Sama",
+    "Sao",
+    "Malon",
+    "Mamignin",
+    "Diongbé",
+    "Makoura",
+    "Mariama",
+    "Kadinta",
+    "Sikasso",
+    "Hawa",
+]
+
+PREFIX_CANONICAL = {
+    "Flasaran": "Flassaran",
+}
+
+HISTORICAL_WIVES = {
+    "Saranké": {
+        "firstName": "Saranké",
+        "lastName": "Konaté",
+        "otherNames": "Saranken Konate, Saranken Konaté",
+        "confidenceLevel": "MEDIUM",
+        "occupation": "Épouse de l'Almamy, régente selon l'historiographie",
+        "biography": (
+            "Épouse documentée de l'Almamy Samory TOURÉ (Saranken Konaté), mentionnée dans "
+            "l'historiographie comme régente. Les enfants dont le prénom composé commence par "
+            "Saranké lui sont rattachés selon la convention mandingue (mère + nom de l'enfant). "
+            "Ne pas confondre avec le fils Saranké Mory TOURE. À valider."
+        ),
+    },
+    "Diaoulen": {
+        "firstName": "Diaoulen",
+        "lastName": "Sidibé",
+        "otherNames": "Djaoulén Sidibé, Djaoulén, Djaoulén-Karamo (mère)",
+        "confidenceLevel": "MEDIUM",
+        "occupation": "Épouse de l'Almamy",
+        "biography": (
+            "Mère de Diaoulen Karamoko (Djaoulé Karamo / Djaoulé Kramo) selon l'historiographie "
+            "(notamment Ibrahima Khalil Fofana). Épouse de Samory. Les enfants « Diaoulen … » "
+            "lui sont rattachés par le prénom composé. À valider."
+        ),
+    },
+}
+
+SKIP_MOTHER_PREFIXES = {"el", "hadji", "mâ", "ma"}
+
+
+def match_mother_prefix(first_name: str) -> str | None:
+    folded = fold_name(first_name)
+    first_token = folded.split()[0] if folded else ""
+    if first_token in SKIP_MOTHER_PREFIXES:
+        return None
+    ranked = sorted(MOTHER_PREFIXES, key=lambda prefix: len(fold_name(prefix)), reverse=True)
+    for prefix in ranked:
+        prefix_fold = fold_name(prefix)
+        if folded == prefix_fold:
+            return None
+        if folded.startswith(prefix_fold + " "):
+            return PREFIX_CANONICAL.get(prefix, prefix)
+    return None
+
+
+def attach_samory_spouses(payload: dict) -> None:
+    children = [
+        person
+        for person in payload["people"]
+        if person.get("sourceId") in {"SRC-002", "SRC-003"}
+    ]
+    wives: dict[str, dict] = {}
+    mother_links: list[dict] = []
+
+    for child in children:
+        prefix = match_mother_prefix(child["firstName"])
+        if not prefix:
+            continue
+        wife_id = f"person-samory-epouse-{slugify(prefix)}"
+        historical = HISTORICAL_WIVES.get(prefix)
+        if wife_id not in wives:
+            wives[wife_id] = {
+                "id": wife_id,
+                "provisionalId": f"PER-SAMORY-EPOUSE-{slugify(prefix).upper()}",
+                "firstName": historical["firstName"] if historical else prefix,
+                "lastName": historical["lastName"] if historical else "",
+                "otherNames": historical["otherNames"] if historical else None,
+                "gender": "FEMALE",
+                "sourceId": "src-anthroponymie-samory",
+                "sourceNo": None,
+                "group": "Épouses de Samory",
+                "relationFromSource": f"Épouse déduite des prénoms composés commençant par « {prefix} »",
+                "validationStatus": "SUBMITTED",
+                "confidenceLevel": historical["confidenceLevel"] if historical else "LOW",
+                "confidentialityLevel": "C0",
+                "occupation": historical.get("occupation") if historical else "Épouse de l'Almamy Samory TOURÉ",
+                "biography": historical["biography"] if historical else (
+                    f"Épouse de l'Almamy Samory TOURÉ reconstituée à partir des prénoms composés "
+                    f"des listes Sanankoro (préfixe « {prefix} » = nom de la mère). "
+                    "Patronyme non indiqué dans SRC-002/SRC-003. À valider par le comité. "
+                    "Aucun conjoint des descendants n'est transcrit dans ces listes."
+                ),
+                "observation": "Relation déduite, non écrite comme « épouse » dans le cahier Excel.",
+            }
+        mother_links.append(
+            {
+                "id": f"rel-{child['provisionalId'].lower()}-mere",
+                "parentId": wife_id,
+                "childId": child["id"],
+                "parentRole": "MOTHER",
+                "notes": (
+                    f"{child['provisionalId']} — mère déduite du prénom composé « {child['firstName']} » "
+                    f"(préfixe {prefix}). À valider."
+                ),
+            }
+        )
+
+    payload["people"].extend(wives.values())
+    payload["parentLinks"].extend(mother_links)
+    for wife in wives.values():
+        payload["spouseLinks"].append(
+            {
+                "personIdA": "person-almamy-samory-toure",
+                "personIdB": wife["id"],
+                "kind": "UNION",
+                "notes": (
+                    "Union déduite : épouse de Samory et mère d'enfants des listes Sanankoro. "
+                    "À valider. Les conjoints des descendants ne figurent pas dans SRC-002/SRC-003."
+                ),
+            }
+        )
 
 
 def main() -> None:
@@ -84,7 +265,7 @@ def main() -> None:
                 "relationFromSource": relation_text,
                 "validationStatus": "SUBMITTED",
                 "confidenceLevel": "HIGH" if clean(confidence) and "élev" in (clean(confidence) or "").lower() else "MEDIUM",
-                "confidentialityLevel": "C0" if source_id == "SRC-001" else "C1",
+                "confidentialityLevel": "C0",
                 "biography": " ".join(part for part in biography_parts if part),
                 "observation": observation,
             }
@@ -108,10 +289,10 @@ def main() -> None:
             "isRoot": True,
             "occupation": "Ancêtre fondateur de la lignée suivie",
             "biography": (
-                "Lanfia TOURÉ (aussi transcrit Kemo / Komo Lanfia) est le point de départ "
-                "officiel de la généalogie suivie par la plateforme. Les listes SRC-002 et "
-                "SRC-003 le nomment comme père des personnes y transcrites ; ces rattachements "
-                "restent à valider par le comité familial."
+                    "Lanfia TOURÉ (aussi transcrit Kemo / Komo Lanfia) est le point de départ "
+                    "officiel de la généalogie suivie par la plateforme. Ses enfants de la liste "
+                    "principale SRC-001 sont rattachés ici. Seul Samory dispose, à ce jour, d'un "
+                    "corpus de descendants (listes Sanankoro SRC-002 et SRC-003)."
             ),
             "observation": None,
         },
@@ -246,8 +427,12 @@ def main() -> None:
             person["occupation"] = "Almamy, fondateur de l'État du Wassoulou"
             person["biography"] = (
                 "Almamy Samory TOURE est une figure historique documentée. SRC-001 le relie "
-                "explicitement à Lanfia TOURE (père) et Mâ Sokona (mère). Ce chaînage reste "
-                "soumis à la validation du comité familial."
+                "explicitement à Lanfia TOURE (père) et Mâ Sokona (mère). Les listes Sanankoro "
+                "SRC-002 (90 fils) et SRC-003 (49 filles) sont rattachées à sa branche : c'est "
+                "le seul enfant de Kemo Lanfia pour lequel un corpus de descendants a été transcrit. "
+                "Ses épouses sont reconstituées à partir de l'historiographie (Saranké Konaté, "
+                "Diaoulen Sidibé) et des prénoms composés de ses enfants. Les conjoints de ses "
+                "descendants ne figurent pas dans le cahier Excel. Chaînage à valider."
             )
 
     payload = {
@@ -267,7 +452,7 @@ def main() -> None:
                 "type": "FAMILY_ARCHIVE",
                 "description": "Liste de 90 noms de fils. Transcription à vérifier par le comité familial.",
                 "author": None,
-                "confidentialityLevel": "C1",
+                "confidentialityLevel": "C0",
                 "confidenceLevel": "MEDIUM",
             },
             {
@@ -276,8 +461,21 @@ def main() -> None:
                 "type": "FAMILY_ARCHIVE",
                 "description": "49 entrées ; numérotation source irrégulière (n°25 dupliqué, n°45 absent).",
                 "author": None,
-                "confidentialityLevel": "C1",
+                "confidentialityLevel": "C0",
                 "confidenceLevel": "MEDIUM",
+            },
+            {
+                "id": "src-anthroponymie-samory",
+                "title": "Épouses de Samory — historiographie et prénoms composés",
+                "type": "HISTORICAL_BOOK",
+                "description": (
+                    "Saranké Konaté et Diaoulen Sidibé sont nommées dans l'historiographie. "
+                    "Les autres épouses sont déduites des prénoms composés des listes Sanankoro "
+                    "(mère + nom de l'enfant). Les unions des 139 descendants ne sont pas dans le cahier."
+                ),
+                "author": None,
+                "confidentialityLevel": "C0",
+                "confidenceLevel": "LOW",
             },
         ],
         "people": extras + people,
@@ -342,32 +540,56 @@ def main() -> None:
         "qualityNotes": [
             "162 fiches transcrites (23 + 90 + 49). Homonymes conservés comme personnes distinctes.",
             "Lanfia / Lankafia et Mâ Sokona / Mâ Sokonassé / Mâ Sokonossé TOURE restent distincts.",
-            "Les 139 personnes SRC-002/SRC-003 sont liées à Lanfia uniquement parce que le catalogue le mentionne comme père selon la source.",
+            "Les 22 autres noms SRC-001 sont rattachés à Lanfia d'après la liste principale « Fils de komo lanfia Toure » (relation déduite, à valider).",
+            "Les 139 personnes SRC-002/SRC-003 forment la descendance documentée de Samory (seul enfant de Lanfia pour lequel ces listes existent). À valider.",
+            "Épouses de Samory : Saranké Konaté et Diaoulen Sidibé (historiographie) ; autres épouses déduites des préfixes de prénoms composés. À valider.",
+            "Aucun conjoint des descendants de Samory n'est transcrit dans SRC-002/SRC-003 ; ces unions restent non documentées.",
         ],
     }
 
-    # Source-stated children of Kemo Lanfia (not invented: written on sheet 05).
+    # SRC-001 liste principale : fils de komo lanfia (sheet 02), sauf Samory déjà en REL-001.
+    for person in people:
+        if person.get("sourceId") != "SRC-001" or person["id"] == "person-almamy-samory-toure":
+            continue
+        payload["parentLinks"].append(
+            {
+                "id": f"rel-{person['provisionalId'].lower()}-lanfia",
+                "parentId": "person-lanfia-toure",
+                "childId": person["id"],
+                "parentRole": "FATHER",
+                "notes": (
+                    f"{person['provisionalId']} SRC-001 n°{person['sourceNo']} — "
+                    "Fils de komo lanfia Toure (relation déduite, liste principale). À valider."
+                ),
+            }
+        )
+
+    # Listes Sanankoro : intitulées Fils/Filles de Samory dans le cahier.
+    # Seul enfant de Lanfia pour lequel un corpus de descendants est disponible.
     for person in people:
         if person.get("relationFromSource") == "Enfant de Kemo Lanfia (selon source)":
-            role = "FATHER"
             payload["parentLinks"].append(
                 {
-                    "id": f"rel-{person['provisionalId'].lower()}-lanfia",
-                    "parentId": "person-lanfia-toure",
+                    "id": f"rel-{person['provisionalId'].lower()}-samory",
+                    "parentId": "person-almamy-samory-toure",
                     "childId": person["id"],
-                    "parentRole": role,
+                    "parentRole": "FATHER",
                     "notes": (
                         f"{person['provisionalId']} {person['sourceId']} n°{person['sourceNo']} — "
-                        "Enfant de Kemo Lanfia (selon source). À valider. Homonymes non fusionnés."
+                        "Liste Sanankoro (cahier : Fils/Filles Samory ; titre source : Descendance de Kemo Lanfia). "
+                        "Rattachée à Samory, seul enfant de Lanfia dont la descendance est documentée. À valider."
                     ),
                 }
             )
+
+    attach_samory_spouses(payload)
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Wrote {OUT}")
     print("people", len(payload["people"]))
     print("parentLinks", len(payload["parentLinks"]))
+    print("spouseLinks", len(payload["spouseLinks"]))
     print("sources", len(payload["sources"]))
 
 

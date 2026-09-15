@@ -6,7 +6,7 @@ import { DatabaseUnavailable } from "@/components/heritage/database-unavailable"
 import { EmptyState } from "@/components/heritage/empty-state";
 import { getActor } from "@/lib/auth";
 import { getRootPerson, listVisiblePeopleForTree } from "@/lib/genealogy/queries";
-import { buildDescendantTree, unattachedPeople } from "@/lib/genealogy/tree";
+import { buildDescendantTree, findPaternalApex, unattachedPeople } from "@/lib/genealogy/tree";
 import { loadGenealogy } from "@/lib/genealogy/safe";
 import { personDisplayName } from "@/lib/genealogy/format";
 
@@ -21,17 +21,19 @@ export default async function PublicTreePage() {
     return { root, people };
   }, { root: null, people: [] });
 
-  const tree = value.root ? buildDescendantTree(value.people, value.root.id) : null;
-  const detached = unattachedPeople(value.people, value.root?.id ?? null);
+  const apexId = value.root ? findPaternalApex(value.people, value.root.id) : null;
+  const tree = apexId ? buildDescendantTree(value.people, apexId, value.root?.id) : null;
+  const detached = unattachedPeople(value.people, apexId);
 
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-12 sm:px-6">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-12 sm:px-6">
         <h1 className="font-heading text-4xl">Arbre familial</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Vue descendante depuis Lanfia TOURÉ. Les fiches non rattachées restent visibles à part :
-          aucun lien n&apos;est inventé.
+          Chaque enfant de Kemo Lanfia apparaît dans sa génération. La descendance complète de
+          Samory (90 fils, 49 filles) est ouverte ci-dessous, groupée par épouse lorsque le
+          prénom composé ou l&apos;historiographie permet de nommer la mère.
         </p>
         <div className="mt-8 grid gap-6">
           {unavailable ? <DatabaseUnavailable /> : null}

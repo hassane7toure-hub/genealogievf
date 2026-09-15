@@ -1,7 +1,11 @@
 import type { Person } from "@prisma/client";
 
+export function personTreeName(person: Pick<Person, "firstName" | "lastName">): string {
+  return `${person.firstName} ${person.lastName}`.trim();
+}
+
 export function personDisplayName(person: Pick<Person, "firstName" | "lastName" | "otherNames">): string {
-  const base = `${person.firstName} ${person.lastName}`.trim();
+  const base = personTreeName(person);
   return person.otherNames ? `${base} (${person.otherNames})` : base;
 }
 

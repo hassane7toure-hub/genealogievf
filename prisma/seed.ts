@@ -117,6 +117,7 @@ async function main() {
   sourceByKey.set("SRC-001", "src-001");
   sourceByKey.set("SRC-002", "src-002");
   sourceByKey.set("SRC-003", "src-003");
+  sourceByKey.set("src-anthroponymie-samory", "src-anthroponymie-samory");
 
   const historicalSource = await prisma.source.upsert({
     where: { id: "source-historiographie-samory" },
@@ -215,6 +216,35 @@ async function main() {
       notes: "Fiche historique publique, en plus de la transcription SRC-001.",
     },
   });
+
+  for (const personId of ["person-samory-epouse-saranke", "person-samory-epouse-diaoulen"]) {
+    const exists = data.people.some((person) => person.id === personId);
+    if (!exists) continue;
+    await prisma.personSource.upsert({
+      where: { personId_sourceId: { personId, sourceId: historicalSource.id } },
+      update: {
+        notes: "Épouse nommée dans l'historiographie de Samory, en plus de la déduction anthroponymique.",
+      },
+      create: {
+        personId,
+        sourceId: historicalSource.id,
+        notes: "Épouse nommée dans l'historiographie de Samory, en plus de la déduction anthroponymique.",
+      },
+    });
+  }
+
+  const sanankoroIds = data.parentLinks
+    .filter((link) => link.parentId === "person-almamy-samory-toure")
+    .map((link) => link.childId);
+
+  if (sanankoroIds.length > 0) {
+    await prisma.parentChild.deleteMany({
+      where: {
+        parentId: "person-lanfia-toure",
+        childId: { in: sanankoroIds },
+      },
+    });
+  }
 
   for (const link of data.parentLinks) {
     await prisma.parentChild.upsert({

@@ -5,7 +5,7 @@ import { DatabaseUnavailable } from "@/components/heritage/database-unavailable"
 import { EmptyState } from "@/components/heritage/empty-state";
 import { getActor } from "@/lib/auth";
 import { getRootPerson, listVisiblePeopleForTree } from "@/lib/genealogy/queries";
-import { buildDescendantTree, unattachedPeople } from "@/lib/genealogy/tree";
+import { buildDescendantTree, findPaternalApex, unattachedPeople } from "@/lib/genealogy/tree";
 import { loadGenealogy } from "@/lib/genealogy/safe";
 import { personDisplayName } from "@/lib/genealogy/format";
 
@@ -20,14 +20,18 @@ export default async function FamilyTreePage() {
     return { root, people };
   }, { root: null, people: [] });
 
-  const tree = value.root ? buildDescendantTree(value.people, value.root.id) : null;
-  const detached = unattachedPeople(value.people, value.root?.id ?? null);
+  const apexId = value.root ? findPaternalApex(value.people, value.root.id) : null;
+  const tree = apexId ? buildDescendantTree(value.people, apexId, value.root?.id) : null;
+  const detached = unattachedPeople(value.people, apexId);
 
   return (
     <div className="grid gap-6">
       <div>
         <h1 className="font-heading text-4xl">Arbre familial</h1>
-        <p className="mt-2 text-muted-foreground">Vue descendante filtrée par votre niveau d&apos;accès.</p>
+        <p className="mt-2 text-muted-foreground">
+          Descendance complète de Samory, groupée par épouse. Les unions des enfants ne sont pas
+          dans les listes Sanankoro.
+        </p>
       </div>
       {unavailable ? <DatabaseUnavailable /> : null}
       {tree ? (
