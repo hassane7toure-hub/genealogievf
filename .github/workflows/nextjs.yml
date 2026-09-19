@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 concurrency:
   group: nextjs-build
@@ -51,3 +52,19 @@ jobs:
 
       - name: Build with Next.js
         run: npm run build
+
+  cleanup:
+    needs: build
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete superseded failed runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate "repos/${{ github.repository }}/actions/workflows/nextjs.yml/runs?status=completed&per_page=50" \
+            --jq '.workflow_runs[] | select(.conclusion=="failure") | .id' \
+            | while read -r id; do
+                echo "Deleting failed run $id"
+                gh api -X DELETE "repos/${{ github.repository }}/actions/runs/$id" || true
+              done
