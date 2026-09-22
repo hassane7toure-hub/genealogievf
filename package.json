@@ -2,9 +2,13 @@
   "name": "genealogievf",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22"
+  },
   "scripts": {
     "dev": "next dev",
     "postinstall": "prisma generate",
+    "clerk:vendor": "node scripts/vendor-clerk-assets.mjs",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
@@ -45,5 +49,8 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "utf-8-validate": "^5.0.10"
   }
 }
