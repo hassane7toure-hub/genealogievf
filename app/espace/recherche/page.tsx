@@ -27,7 +27,7 @@ export default async function FamilySearchPage({
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-heading text-4xl">Recherche interne</h1>
+        <h1 className="font-heading text-3xl leading-tight sm:text-4xl">Recherche interne</h1>
         <p className="mt-2 text-muted-foreground">Les résultats ne dépassent jamais votre niveau de confidentialité.</p>
       </div>
       <div className="max-w-xl">

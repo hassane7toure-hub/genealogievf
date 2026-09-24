@@ -36,8 +36,8 @@ export function HeritageLogo({
         style={{ width: spec.px, height: spec.px, objectPosition: "center 18%" }}
       />
       <span className="flex min-w-0 flex-col leading-tight">
-        <span className={cn("font-heading tracking-wide text-foreground", spec.text)}>TOURÉ</span>
-        <span className={cn("uppercase tracking-[0.22em] text-muted-foreground", spec.subtitle)}>
+        <span className={cn("truncate font-heading tracking-wide text-foreground", spec.text)}>TOURÉ</span>
+        <span className={cn("truncate uppercase tracking-[0.18em] text-muted-foreground sm:tracking-[0.22em]", spec.subtitle)}>
           {subtitle}
         </span>
       </span>

@@ -28,8 +28,8 @@ export default async function PublicSearchPage({
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-12 sm:px-6">
-        <h1 className="font-heading text-4xl">Recherche</h1>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+        <h1 className="font-heading text-3xl leading-tight sm:text-4xl">Recherche</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           La recherche respecte la confidentialité : un document ou une fiche C3 n&apos;apparaît jamais dans un résultat C0.
         </p>

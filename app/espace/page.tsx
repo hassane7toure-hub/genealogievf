@@ -33,13 +33,13 @@ export default async function DashboardPage() {
     <div className="grid gap-6">
       <div>
         <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Espace authentifié</p>
-        <h1 className="mt-2 font-heading text-4xl">Tableau de bord</h1>
+        <h1 className="mt-2 font-heading text-3xl leading-tight sm:text-4xl">Tableau de bord</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Clerk identifie. L&apos;application autorise. Votre rôle et votre statut généalogique sont distincts.
         </p>
       </div>
       <SetupBanner />
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Autorisation</CardTitle>
@@ -56,7 +56,7 @@ export default async function DashboardPage() {
             <CardTitle>Fiches visibles</CardTitle>
             <CardDescription>Selon votre niveau de confidentialité</CardDescription>
           </CardHeader>
-          <CardContent className="font-heading text-4xl">{isDatabaseConfigured() ? people.length : "—"}</CardContent>
+          <CardContent className="font-heading text-3xl leading-tight sm:text-4xl">{isDatabaseConfigured() ? people.length : "—"}</CardContent>
         </Card>
         <Card>
           <CardHeader>
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Shortcut href="/espace/personnes" icon={Users} title="Personnes" text="Consulter et, si vous y êtes autorisé, ajouter une fiche." />
         <Shortcut href="/espace/arbre" icon={Trees} title="Arbre" text="Naviguer depuis Lanfia TOURÉ." />
         <Shortcut href="/espace/recherche" icon={Search} title="Recherche interne" text="Chercher dans le périmètre autorisé." />

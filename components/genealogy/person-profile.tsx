@@ -26,7 +26,7 @@ export function PersonProfile({
     <article className="grid gap-6">
       <header className="rounded-2xl bg-card p-6 ring-1 ring-foreground/10 sm:p-8">
         <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Fiche généalogique</p>
-        <h1 className="mt-2 font-heading text-4xl">{personDisplayName(person)}</h1>
+        <h1 className="mt-2 font-heading text-3xl leading-tight sm:text-4xl">{personDisplayName(person)}</h1>
         <p className="mt-2 text-muted-foreground">{personLifeSpan(person)}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <ConfidentialityBadge level={person.confidentialityLevel} />

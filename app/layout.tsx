@@ -1,5 +1,5 @@
 import { HeritageClerkProvider } from "@/components/heritage/heritage-clerk-provider";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Figtree, Geist_Mono } from "next/font/google";
 import { HeritageWatermark } from "@/components/brand/heritage-watermark";
 import { AppProviders } from "@/components/providers";
@@ -23,6 +23,12 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: {

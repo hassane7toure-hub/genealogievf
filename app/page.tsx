@@ -22,10 +22,10 @@ export default async function HomePage() {
       <main className="flex-1">
         <section className="relative overflow-hidden border-b">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,oklch(0.9_0.06_80),transparent_42%),radial-gradient(circle_at_bottom_right,oklch(0.9_0.04_140),transparent_36%)]" />
-          <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:py-24">
+          <div className="relative mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 sm:gap-10 sm:px-6 sm:py-16 lg:grid-cols-[1.2fr_0.8fr] lg:py-24">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">Grande Famille TOURÉ</p>
-              <h1 className="mt-4 max-w-xl font-heading text-5xl leading-tight sm:text-6xl">
+              <h1 className="mt-4 max-w-xl font-heading text-4xl leading-tight sm:text-5xl lg:text-6xl">
                 TOURÉ FAMILY HERITAGE
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-8 text-muted-foreground">
@@ -66,7 +66,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
+        <section className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
           <SetupBanner />
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Feature icon={Trees} title="Généalogie" text="Personnes, branches, parents, conjoints et homonymes." />

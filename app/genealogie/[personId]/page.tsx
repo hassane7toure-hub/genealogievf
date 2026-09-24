@@ -32,7 +32,7 @@ export default async function PublicPersonPage({
     return (
       <>
         <SiteHeader />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-12 sm:px-6">
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
           <DatabaseUnavailable />
         </main>
         <SiteFooter />
@@ -47,7 +47,7 @@ export default async function PublicPersonPage({
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-12 sm:px-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
         <PersonProfile person={person} profileHref={(id) => `/genealogie/${id}`} />
       </main>
       <SiteFooter />

@@ -9,9 +9,9 @@ export default function HistoryPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
         <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Mémoire publique</p>
-        <h1 className="mt-3 font-heading text-4xl">Histoire de la Grande Famille TOURÉ</h1>
+        <h1 className="mt-3 font-heading text-3xl leading-tight sm:text-4xl">Histoire de la Grande Famille TOURÉ</h1>
         <div className="mt-8 space-y-6 text-base leading-8 text-muted-foreground">
           <p>
             Cette page rassemble des informations publiques (niveau C0) destinées à la transmission.

@@ -27,7 +27,7 @@ export default async function FamilyTreePage() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-heading text-4xl">Arbre familial</h1>
+        <h1 className="font-heading text-3xl leading-tight sm:text-4xl">Arbre familial</h1>
         <p className="mt-2 text-muted-foreground">
           Descendance complète de Samory, groupée par épouse. Les unions des enfants ne sont pas
           dans les listes Sanankoro.

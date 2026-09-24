@@ -22,7 +22,7 @@ export default async function PeoplePage() {
     <div className="grid gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-heading text-4xl">Personnes</h1>
+          <h1 className="font-heading text-3xl leading-tight sm:text-4xl">Personnes</h1>
           <p className="mt-2 text-muted-foreground">Fiches visibles selon votre autorisation.</p>
         </div>
         {canWrite ? (

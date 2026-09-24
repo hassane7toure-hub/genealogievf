@@ -35,7 +35,7 @@ export default async function NewPersonPage({
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-heading text-4xl">
+        <h1 className="font-heading text-3xl leading-tight sm:text-4xl">
           {value.spouseOf ? "Ajouter un conjoint" : "Ajouter une personne"}
         </h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">

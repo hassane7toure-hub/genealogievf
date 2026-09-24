@@ -25,7 +25,7 @@ export default async function NotificationsPage() {
     <div className="grid gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-heading text-4xl">Notifications</h1>
+          <h1 className="font-heading text-3xl leading-tight sm:text-4xl">Notifications</h1>
           <p className="mt-2 text-muted-foreground">Réunions, discussions et alertes de la Grande Famille.</p>
         </div>
         <MarkReadButton />

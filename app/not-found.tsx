@@ -8,7 +8,7 @@ export default function NotFound() {
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-start justify-center px-4 py-16">
         <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">404</p>
-        <h1 className="mt-3 font-heading text-4xl">Page introuvable</h1>
+        <h1 className="mt-3 font-heading text-3xl leading-tight sm:text-4xl">Page introuvable</h1>
         <p className="mt-3 text-muted-foreground">
           Cette ressource n&apos;existe pas, ou elle n&apos;est pas visible à votre niveau de confidentialité.
         </p>

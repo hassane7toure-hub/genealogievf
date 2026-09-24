@@ -24,7 +24,7 @@ export default async function DiscussionsPage() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-heading text-4xl">Discussions et votes</h1>
+        <h1 className="font-heading text-3xl leading-tight sm:text-4xl">Discussions et votes</h1>
         <p className="mt-2 text-muted-foreground">Chaque voix est nominative et journalisée.</p>
       </div>
       {unavailable ? <DatabaseUnavailable /> : null}

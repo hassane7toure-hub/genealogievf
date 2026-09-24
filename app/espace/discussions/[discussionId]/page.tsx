@@ -51,7 +51,7 @@ export default async function DiscussionDetailPage({
         <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
           {discussionStatusLabel(discussion.status)}
         </p>
-        <h1 className="mt-1 font-heading text-4xl">{discussion.title}</h1>
+        <h1 className="mt-1 font-heading text-3xl leading-tight sm:text-4xl">{discussion.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{formatFamilyDate(discussion.createdAt)}</p>
       </div>
       <Card>

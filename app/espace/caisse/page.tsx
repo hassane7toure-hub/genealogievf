@@ -33,11 +33,11 @@ export default async function TreasuryPage() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-heading text-4xl">Caisse familiale</h1>
+        <h1 className="font-heading text-3xl leading-tight sm:text-4xl">Caisse familiale</h1>
         <p className="mt-2 text-muted-foreground">Cotisations, dépenses et solde. Chaque écriture est auditable.</p>
       </div>
       {unavailable ? <DatabaseUnavailable /> : null}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Stat title="Cotisations" value={formatMoney({ toString: () => String(inflow) }, "GNF")} />
         <Stat title="Dépenses" value={formatMoney({ toString: () => String(outflow) }, "GNF")} />
         <Stat title="Solde" value={formatMoney({ toString: () => String(inflow - outflow) }, "GNF")} />

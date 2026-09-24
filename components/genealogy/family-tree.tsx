@@ -18,7 +18,7 @@ export function FamilyTreeCanvas({
   selectedId?: string;
   personBasePath: string;
 }) {
-  const [scale, setScale] = useState(0.85);
+  const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
@@ -27,8 +27,8 @@ export function FamilyTreeCanvas({
   return (
     <div className="overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
-        <p className="text-sm text-muted-foreground">
-          {stats} personne{stats > 1 ? "s" : ""} dans l&apos;arbre visible. Glisser pour déplacer, boutons pour zoomer.
+        <p className="min-w-0 text-sm text-muted-foreground">
+          {stats} personne{stats > 1 ? "s" : ""} dans l&apos;arbre visible. Faire défiler pour parcourir. Sur ordinateur, glisser pour déplacer.
         </p>
         <div className="flex gap-2">
           <Button type="button" variant="outline" size="icon" onClick={() => setScale((value) => Math.max(0.4, value - 0.1))} aria-label="Zoom arrière">
@@ -42,7 +42,7 @@ export function FamilyTreeCanvas({
             variant="outline"
             size="icon"
             onClick={() => {
-              setScale(0.85);
+              setScale(1);
               setOffset({ x: 0, y: 0 });
             }}
             aria-label="Réinitialiser"
@@ -52,8 +52,9 @@ export function FamilyTreeCanvas({
         </div>
       </div>
       <div
-        className="min-h-[560px] cursor-grab overflow-auto bg-[radial-gradient(circle_at_top,oklch(0.96_0.02_85),transparent_42%)] p-8 active:cursor-grabbing"
-        onMouseDown={(event) => {
+        className="min-h-[70dvh] cursor-grab overflow-auto bg-[radial-gradient(circle_at_top,oklch(0.96_0.02_85),transparent_42%)] p-3 active:cursor-grabbing sm:min-h-[560px] sm:p-6 lg:p-8"
+        onPointerDown={(event) => {
+          if (event.pointerType === "touch") return;
           drag.current = { x: event.clientX, y: event.clientY, ox: offset.x, oy: offset.y };
         }}
         onMouseMove={(event) => {
@@ -72,7 +73,7 @@ export function FamilyTreeCanvas({
       >
         <div
           style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }}
-          className="origin-top w-max min-w-full transition-transform duration-150"
+          className="origin-top w-full transition-transform duration-150"
         >
           <TreeBranch
             node={root}
@@ -111,7 +112,7 @@ function TreeBranch({
   );
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex w-full flex-col items-center">
       <Couple node={node} selectedId={selectedId} personBasePath={personBasePath} />
       {node.children.length > 0 || node.hiddenDescendantCount > 0 ? (
         <>
@@ -125,7 +126,7 @@ function TreeBranch({
               onToggle={onToggle}
             />
           ) : (
-            <div className="flex w-full min-w-[56rem] flex-col items-center">
+            <div className="flex w-full min-w-0 flex-col items-center">
               {visibleChildren.length > 0 ? (
                 <Generation
                   childrenNodes={visibleChildren}
@@ -419,9 +420,9 @@ function Generation({
   return (
     <div className="relative flex flex-col items-center">
       <div className="h-px w-[min(100%,72rem)] bg-primary/25" />
-      <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+      <div className="mt-6 grid w-full grid-cols-1 gap-x-3 gap-y-6 min-[420px]:grid-cols-2 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:grid-cols-5">
         {childrenNodes.map((child) => (
-          <div key={child.id} className="flex flex-col items-center">
+          <div key={child.id} className="flex min-w-0 flex-col items-center">
             <div className="mb-3 h-6 w-px bg-primary/30" />
             <Couple node={child} selectedId={selectedId} personBasePath={personBasePath} />
           </div>
@@ -443,8 +444,8 @@ function Couple({
   const inlineSpouses = node.spouses.length <= 2 ? node.spouses : [];
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="flex flex-wrap items-stretch justify-center gap-2">
+    <div className="flex w-full flex-col items-center gap-2">
+      <div className="flex w-full flex-wrap items-stretch justify-center gap-2">
         <PersonNode
           node={node}
           selected={node.id === selectedId || node.isLineageRoot}
@@ -497,16 +498,16 @@ function PersonNode({
       href={href}
       onMouseDown={(event) => event.stopPropagation()}
       className={cn(
-        "w-44 rounded-xl bg-background px-3 py-3 text-center shadow-sm ring-1 ring-foreground/10 transition-all hover:ring-primary/40",
+        "rounded-xl bg-background px-3 py-3 text-center shadow-sm ring-1 ring-foreground/10 transition-all hover:ring-primary/40",
+        spouse ? "w-[min(10rem,calc(50%-0.25rem))] ring-dashed" : "w-[min(11rem,calc(50%-0.25rem))]",
         selected && "ring-2 ring-primary",
         node.isLineageRoot && "bg-primary/5",
-        spouse && "w-40 ring-dashed",
       )}
     >
       {node.isLineageRoot ? (
         <p className="mb-1 text-[10px] uppercase tracking-[0.18em] text-primary">Racine de la lignée</p>
       ) : null}
-      <p className="font-heading text-base leading-tight">{node.displayName}</p>
+      <p className="font-heading text-base leading-tight break-words">{node.displayName}</p>
       {node.otherNames ? <p className="mt-1 text-[11px] text-muted-foreground">{node.otherNames}</p> : null}
       <p className="mt-1 text-xs text-muted-foreground">{node.lifeSpan === "Dates non documentées" ? "—" : node.lifeSpan}</p>
       {node.hiddenDescendantCount > 0 ? (

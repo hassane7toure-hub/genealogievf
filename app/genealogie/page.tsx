@@ -18,8 +18,8 @@ export default async function GenealogyPage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-12 sm:px-6">
-        <h1 className="font-heading text-4xl">Généalogie publique</h1>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+        <h1 className="font-heading text-3xl leading-tight sm:text-4xl">Généalogie publique</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Seules les fiches autorisées pour votre niveau de confidentialité sont listées. Un visiteur
           non connecté ne voit que le niveau C0.

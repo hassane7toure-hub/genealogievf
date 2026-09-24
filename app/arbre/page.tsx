@@ -28,8 +28,8 @@ export default async function PublicTreePage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-12 sm:px-6">
-        <h1 className="font-heading text-4xl">Arbre familial</h1>
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+        <h1 className="font-heading text-3xl leading-tight sm:text-4xl">Arbre familial</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Chaque enfant de Kemo Lanfia apparaît dans sa génération. La descendance complète de
           Samory (90 fils, 49 filles) est ouverte ci-dessous, groupée par épouse lorsque le
