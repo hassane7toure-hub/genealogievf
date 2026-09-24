@@ -52,6 +52,18 @@ export function canWriteGenealogy(actor: Actor): boolean {
   return role === "FAMILY_MEMBER" || role === "COMMITTEE_MEMBER" || role === "ADMIN";
 }
 
+export function canAccessFamilyLife(actor: Actor): boolean {
+  return canAccessLevel(actor, "C1");
+}
+
+export function canWriteFamilyLife(actor: Actor): boolean {
+  return canWriteGenealogy(actor);
+}
+
+export function canManageFinance(actor: Actor): boolean {
+  return canManageCommittee(actor);
+}
+
 export function canManageCommittee(actor: Actor): boolean {
   const role = actor.user?.role;
   return role === "COMMITTEE_MEMBER" || role === "ADMIN";

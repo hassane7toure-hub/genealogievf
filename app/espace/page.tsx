@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Trees, Users, Search, Shield } from "lucide-react";
+import { Trees, Users, Search, Shield, CalendarDays, Calendar, MessagesSquare, Wallet, Bell } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SetupBanner } from "@/components/heritage/setup-banner";
@@ -9,6 +9,8 @@ import { genealogicalStatusLabel, maxConfidentialityFor, roleLabel } from "@/lib
 import { listVisiblePeople } from "@/lib/genealogy/queries";
 import { loadGenealogy } from "@/lib/genealogy/safe";
 import { isDatabaseConfigured } from "@/lib/env";
+import { listUpcomingMeetings, unreadNotificationCount } from "@/lib/family/queries";
+import { formatFamilyDate } from "@/lib/family/labels";
 
 export const metadata: Metadata = {
   title: "Espace famille",
@@ -16,7 +18,15 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   const actor = await getActor();
-  const { value: people } = await loadGenealogy(() => listVisiblePeople(actor), []);
+  const { value } = await loadGenealogy(async () => {
+    const [people, meetings, unread] = await Promise.all([
+      listVisiblePeople(actor),
+      listUpcomingMeetings(actor),
+      unreadNotificationCount(actor),
+    ]);
+    return { people, meetings, unread };
+  }, { people: [], meetings: [], unread: 0 });
+  const people = value.people;
   const level = maxConfidentialityFor(actor);
 
   return (
@@ -62,7 +72,27 @@ export default async function DashboardPage() {
         <Shortcut href="/espace/personnes" icon={Users} title="Personnes" text="Consulter et, si vous y êtes autorisé, ajouter une fiche." />
         <Shortcut href="/espace/arbre" icon={Trees} title="Arbre" text="Naviguer depuis Lanfia TOURÉ." />
         <Shortcut href="/espace/recherche" icon={Search} title="Recherche interne" text="Chercher dans le périmètre autorisé." />
+        <Shortcut href="/espace/reunions" icon={CalendarDays} title="Réunions" text="Convocations et ordres du jour." />
+        <Shortcut href="/espace/evenements" icon={Calendar} title="Événements" text="Mariages, funérailles et rendez-vous patrimoniaux." />
+        <Shortcut href="/espace/discussions" icon={MessagesSquare} title="Discussions" text="Débattre et voter, voix nominative." />
+        <Shortcut href="/espace/caisse" icon={Wallet} title="Caisse" text="Cotisations et dépenses du comité." />
+        <Shortcut href="/espace/notifications" icon={Bell} title="Notifications" text={`${value.unread} alerte${value.unread > 1 ? "s" : ""} non lue${value.unread > 1 ? "s" : ""}.`} />
       </div>
+      {value.meetings.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Prochaines réunions</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-2 text-sm">
+            {value.meetings.map((meeting) => (
+              <p key={meeting.id}>
+                <span className="font-medium">{meeting.title}</span>
+                <span className="text-muted-foreground"> — {formatFamilyDate(meeting.startsAt)}</span>
+              </p>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

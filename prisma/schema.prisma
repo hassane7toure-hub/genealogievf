@@ -110,6 +110,10 @@ model User {
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
   auditLogs           AuditLog[]
+  discussions         Discussion[]
+  discussionComments  DiscussionComment[]
+  votes               Vote[]
+  notifications       Notification[]
 
   @@index([role])
   @@index([genealogicalStatus])
@@ -271,5 +275,170 @@ model AuditLog {
 
   @@index([entityType, entityId])
   @@index([actorUserId])
+  @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// V2 — Vie de famille : réunions, événements, discussions, caisse, alertes
+// ---------------------------------------------------------------------------
+
+enum MeetingStatus {
+  UPCOMING
+  COMPLETED
+  CANCELLED
+}
+
+enum FamilyEventKind {
+  FAMILY_MEETING
+  WEDDING
+  BAPTISM
+  FUNERAL
+  CULTURAL
+  HERITAGE
+  ANNIVERSARY
+  OTHER
+}
+
+enum DiscussionStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+enum VoteChoice {
+  FOR
+  AGAINST
+  ABSTAIN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  LATE
+  CANCELLED
+}
+
+model Meeting {
+  id                    String                @id @default(cuid())
+  title                 String
+  startsAt              DateTime
+  location              String?
+  agenda                String?
+  status                MeetingStatus         @default(UPCOMING)
+  confidentialityLevel  ConfidentialityLevel  @default(C1)
+  notes                 String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([startsAt])
+  @@index([status])
+  @@index([confidentialityLevel])
+}
+
+model FamilyEvent {
+  id                    String                @id @default(cuid())
+  title                 String
+  description           String?
+  startsAt              DateTime
+  location              String?
+  kind                  FamilyEventKind       @default(OTHER)
+  confidentialityLevel  ConfidentialityLevel  @default(C1)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([startsAt])
+  @@index([kind])
+  @@index([confidentialityLevel])
+}
+
+model Discussion {
+  id                    String                @id @default(cuid())
+  title                 String
+  body                  String
+  status                DiscussionStatus      @default(OPEN)
+  confidentialityLevel  ConfidentialityLevel  @default(C1)
+  authorUserId          String?
+  author                User?                 @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  comments              DiscussionComment[]
+  votes                 Vote[]
+
+  @@index([status])
+  @@index([confidentialityLevel])
+  @@index([createdAt])
+}
+
+model DiscussionComment {
+  id            String     @id @default(cuid())
+  discussionId  String
+  discussion    Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  authorUserId  String?
+  author        User?      @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+  body          String
+  createdAt     DateTime   @default(now())
+
+  @@index([discussionId])
+}
+
+model Vote {
+  id            String     @id @default(cuid())
+  discussionId  String
+  discussion    Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  voterUserId   String
+  voter         User       @relation(fields: [voterUserId], references: [id], onDelete: Cascade)
+  choice        VoteChoice
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@unique([discussionId, voterUserId])
+  @@index([voterUserId])
+}
+
+model Contribution {
+  id                    String                @id @default(cuid())
+  contributorName       String
+  amount                Decimal               @db.Decimal(12, 2)
+  currency              String                @default("GNF")
+  paidAt                DateTime              @db.Date
+  purpose               String?
+  status                PaymentStatus         @default(PAID)
+  confidentialityLevel  ConfidentialityLevel  @default(C3)
+  notes                 String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([paidAt])
+  @@index([confidentialityLevel])
+}
+
+model Expense {
+  id                    String                @id @default(cuid())
+  title                 String
+  amount                Decimal               @db.Decimal(12, 2)
+  currency              String                @default("GNF")
+  spentAt               DateTime              @db.Date
+  category              String?
+  receiptUrl            String?
+  confidentialityLevel  ConfidentialityLevel  @default(C3)
+  notes                 String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([spentAt])
+  @@index([confidentialityLevel])
+}
+
+model Notification {
+  id         String    @id @default(cuid())
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  body       String?
+  href       String?
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, readAt])
   @@index([createdAt])
 }

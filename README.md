@@ -33,5 +33,6 @@ Ouvrez [http://localhost:3000](http://localhost:3000).
 - Généalogie : personnes, branches, parents, conjoints, homonymes
 - Arbre descendant depuis **Lanfia TOURÉ**
 - Tableau de bord authentifié
+- Vie de famille (V2) : réunions, événements, discussions/votes, caisse, notifications
 
 Les modules héritage avancé, réunions, cotisations et votes viendront ensuite, sans réécrire le schéma de base.

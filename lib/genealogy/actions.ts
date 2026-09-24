@@ -2,7 +2,8 @@
 
 import { z } from "zod";
 import { redirect } from "next/navigation";
-import type { ConfidentialityLevel, ConfidenceLevel, Gender, Prisma } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import type { ConfidentialityLevel, ConfidenceLevel, Gender, Prisma, SpouseKind } from "@prisma/client";
 import { requireActor } from "@/lib/auth";
 import { canAccessLevel, canWriteGenealogy } from "@/lib/authorization";
 import { writeAuditLog } from "@/lib/audit";
@@ -33,6 +34,7 @@ const personSchema = z.object({
   confidenceLevel: z.enum(["LOW", "MEDIUM", "HIGH", "VERY_HIGH"]),
   fatherId: z.string().optional(),
   motherId: z.string().optional(),
+  spouseOf: z.string().optional(),
   confirmHomonyms: z.string().optional(),
 });
 
@@ -67,6 +69,7 @@ export async function createPersonAction(
     confidenceLevel: formData.get("confidenceLevel") || "MEDIUM",
     fatherId: emptyToUndefined(String(formData.get("fatherId") ?? "")),
     motherId: emptyToUndefined(String(formData.get("motherId") ?? "")),
+    spouseOf: emptyToUndefined(String(formData.get("spouseOf") ?? "")),
     confirmHomonyms: emptyToUndefined(String(formData.get("confirmHomonyms") ?? "")),
   });
 
@@ -108,6 +111,13 @@ export async function createPersonAction(
   }
 
   const prisma = requirePrisma();
+  if (data.spouseOf) {
+    const spouse = await prisma.person.findUnique({ where: { id: data.spouseOf } });
+    if (!spouse) {
+      return { error: "Le conjoint à lier est introuvable.", values: submittedValues };
+    }
+  }
+
   const created = await prisma.person.create({
     data: {
       firstName: data.firstName,
@@ -139,6 +149,13 @@ export async function createPersonAction(
     await prisma.parentChild.createMany({ data: parentLinks });
   }
 
+  if (data.spouseOf) {
+    const linked = await linkSpouses(prisma, created.id, data.spouseOf);
+    if ("error" in linked) {
+      return { error: linked.error, values: submittedValues };
+    }
+  }
+
   await writeAuditLog({
     actorUserId: actor.user.id,
     action: "PERSON_CREATED",
@@ -152,4 +169,115 @@ export async function createPersonAction(
   });
 
   redirect(`/espace/personnes/${created.id}`);
+}
+
+export type SpouseFormState = { error?: string } | null;
+
+function orderedSpouseIds(leftId: string, rightId: string) {
+  return leftId < rightId
+    ? { personIdA: leftId, personIdB: rightId }
+    : { personIdA: rightId, personIdB: leftId };
+}
+
+async function linkSpouses(
+  prisma: ReturnType<typeof requirePrisma>,
+  leftId: string,
+  rightId: string,
+  extra?: { kind?: SpouseKind; startDate?: Date; place?: string; notes?: string },
+) {
+  if (leftId === rightId) {
+    return { error: "Une personne ne peut pas être son propre conjoint." };
+  }
+
+  const [left, right] = await prisma.person.findMany({
+    where: { id: { in: [leftId, rightId] } },
+    select: { id: true },
+  });
+  if (!left || !right) {
+    return { error: "L'une des deux fiches est introuvable." };
+  }
+
+  const pair = orderedSpouseIds(leftId, rightId);
+  const existing = await prisma.spouseRelationship.findUnique({
+    where: { personIdA_personIdB: { personIdA: pair.personIdA, personIdB: pair.personIdB } },
+  });
+  if (existing) {
+    return { error: "Ce lien conjugal est déjà enregistré." };
+  }
+
+  await prisma.spouseRelationship.create({
+    data: {
+      ...pair,
+      kind: extra?.kind ?? "MARRIAGE",
+      startDate: extra?.startDate,
+      place: extra?.place,
+      notes: extra?.notes,
+    },
+  });
+
+  revalidatePath(`/espace/personnes/${leftId}`);
+  revalidatePath(`/espace/personnes/${rightId}`);
+  revalidatePath("/espace/arbre");
+  revalidatePath("/arbre");
+  return { ok: true as const };
+}
+
+const spouseSchema = z.object({
+  personId: z.string().min(1),
+  spouseId: z.string().min(1, "Choisissez un conjoint."),
+  kind: z.enum(["MARRIAGE", "UNION", "OTHER"]),
+  startDate: z.string().optional(),
+  place: z.string().trim().max(160).optional(),
+});
+
+export async function createSpouseAction(
+  _previous: SpouseFormState,
+  formData: FormData,
+): Promise<SpouseFormState> {
+  const actor = await requireActor();
+  if (!canWriteGenealogy(actor) || !actor.user) {
+    return { error: "Vous n'avez pas l'autorisation d'ajouter un conjoint." };
+  }
+
+  const parsed = spouseSchema.safeParse({
+    personId: formData.get("personId"),
+    spouseId: formData.get("spouseId"),
+    kind: formData.get("kind") || "MARRIAGE",
+    startDate: emptyToUndefined(String(formData.get("startDate") ?? "")),
+    place: emptyToUndefined(String(formData.get("place") ?? "")),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Données invalides." };
+  }
+
+  let startDate: Date | undefined;
+  if (parsed.data.startDate) {
+    startDate = new Date(parsed.data.startDate);
+    if (Number.isNaN(startDate.getTime())) {
+      return { error: "La date de mariage est invalide." };
+    }
+  }
+
+  const prisma = requirePrisma();
+  const linked = await linkSpouses(prisma, parsed.data.personId, parsed.data.spouseId, {
+    kind: parsed.data.kind,
+    startDate,
+    place: parsed.data.place,
+  });
+  if ("error" in linked) {
+    return { error: linked.error };
+  }
+
+  await writeAuditLog({
+    actorUserId: actor.user.id,
+    action: "SPOUSE_LINKED",
+    entityType: "SpouseRelationship",
+    entityId: parsed.data.personId,
+    newValue: {
+      spouseId: parsed.data.spouseId,
+      kind: parsed.data.kind,
+    },
+  });
+
+  return null;
 }

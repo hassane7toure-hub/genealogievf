@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PersonProfile } from "@/components/genealogy/person-profile";
+import { SpouseForm } from "@/components/genealogy/spouse-form";
 import { DatabaseUnavailable } from "@/components/heritage/database-unavailable";
 import { getActor } from "@/lib/auth";
-import { getPersonById } from "@/lib/genealogy/queries";
-import { loadGenealogy } from "@/lib/genealogy/safe";
+import { canWriteGenealogy } from "@/lib/authorization";
 import { personDisplayName } from "@/lib/genealogy/format";
+import { getPersonById, listVisiblePeople } from "@/lib/genealogy/queries";
+import { loadGenealogy } from "@/lib/genealogy/safe";
 
 export async function generateMetadata({
   params,
@@ -25,15 +27,35 @@ export default async function FamilyPersonPage({
 }) {
   const { personId } = await params;
   const actor = await getActor();
-  const { value: person, unavailable } = await loadGenealogy(() => getPersonById(actor, personId), null);
+  const { value, unavailable } = await loadGenealogy(async () => {
+    const person = await getPersonById(actor, personId);
+    if (!person) return { person: null, candidates: [] };
+    const people = canWriteGenealogy(actor) ? await listVisiblePeople(actor) : [];
+    const spouseIds = new Set(person.spouses.map((spouse) => spouse.id));
+    return {
+      person,
+      candidates: people.filter((item) => item.id !== person.id && !spouseIds.has(item.id)),
+    };
+  }, { person: null, candidates: [] });
 
   if (unavailable) {
     return <DatabaseUnavailable />;
   }
 
-  if (!person) {
+  if (!value.person) {
     notFound();
   }
 
-  return <PersonProfile person={person} profileHref={(id) => `/espace/personnes/${id}`} />;
+  return (
+    <div className="grid gap-6">
+      <PersonProfile person={value.person} profileHref={(id) => `/espace/personnes/${id}`} />
+      {canWriteGenealogy(actor) ? (
+        <SpouseForm
+          personId={value.person.id}
+          personName={personDisplayName(value.person)}
+          people={value.candidates}
+        />
+      ) : null}
+    </div>
+  );
 }

@@ -1,4 +1,4 @@
-import type { ConfidenceLevel, Gender, ValidationStatus } from "@prisma/client";
+import type { ConfidenceLevel, Gender, SpouseKind, ValidationStatus } from "@prisma/client";
 
 export function genderLabel(gender: Gender): string {
   switch (gender) {
@@ -8,6 +8,17 @@ export function genderLabel(gender: Gender): string {
       return "Masculin";
     default:
       return "Non précisé";
+  }
+}
+
+export function spouseKindLabel(kind: SpouseKind): string {
+  switch (kind) {
+    case "MARRIAGE":
+      return "Mariage";
+    case "UNION":
+      return "Union";
+    default:
+      return "Autre";
   }
 }
 

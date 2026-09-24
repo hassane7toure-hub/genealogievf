@@ -19,7 +19,9 @@ export default function ErrorPage({
     <main className="mx-auto flex min-h-full w-full max-w-xl flex-col items-start justify-center px-4 py-16">
       <h1 className="font-heading text-4xl">Une erreur est survenue</h1>
       <p className="mt-3 text-muted-foreground">
-        Réessayez, ou revenez à l&apos;accueil. Si le problème persiste, vérifiez la configuration Clerk et Neon.
+        {error.message?.includes("Failed to load Clerk") || error.name === "ClerkAPIResponseError"
+          ? "La connexion (Clerk) est momentanément indisponible. Réessayez, ou consultez d'abord les pages publiques."
+          : "Réessayez, ou revenez à l'accueil. Si le problème persiste, vérifiez la configuration Clerk et Neon."}
       </p>
       <div className="mt-6 flex gap-3">
         <Button onClick={reset}>Réessayer</Button>

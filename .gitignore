@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# Clerk JS served locally (copied from node_modules on install)
+/public/clerk/*.js
+
 # vercel
 .vercel
 

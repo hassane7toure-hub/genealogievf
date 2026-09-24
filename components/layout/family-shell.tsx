@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import type { User } from "@prisma/client";
-import { Trees, Users, Search, LayoutDashboard, BookOpen } from "lucide-react";
+import { Trees, Users, Search, LayoutDashboard, BookOpen, CalendarDays, Calendar, MessagesSquare, Wallet, Bell } from "lucide-react";
 import { HeritageLogo } from "@/components/brand/heritage-logo";
 import { genealogicalStatusLabel, maxConfidentialityFor, roleLabel, type Actor } from "@/lib/authorization";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,11 @@ const links = [
   { href: "/espace", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/espace/personnes", label: "Personnes", icon: Users },
   { href: "/espace/arbre", label: "Arbre", icon: Trees },
+  { href: "/espace/reunions", label: "Réunions", icon: CalendarDays },
+  { href: "/espace/evenements", label: "Événements", icon: Calendar },
+  { href: "/espace/discussions", label: "Discussions", icon: MessagesSquare },
+  { href: "/espace/caisse", label: "Caisse", icon: Wallet },
+  { href: "/espace/notifications", label: "Notifications", icon: Bell },
   { href: "/espace/recherche", label: "Recherche", icon: Search },
   { href: "/histoire", label: "Site public", icon: BookOpen },
 ];

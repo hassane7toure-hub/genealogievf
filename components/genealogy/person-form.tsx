@@ -15,14 +15,29 @@ import { Textarea } from "@/components/ui/textarea";
 export function PersonForm({
   branches,
   people,
+  spouseOf,
 }: {
   branches: FamilyBranch[];
   people: Person[];
+  spouseOf?: { id: string; name: string };
 }) {
   const [state, formAction, pending] = useActionState<PersonFormState, FormData>(createPersonAction, null);
 
   return (
     <form action={formAction} className="grid gap-5">
+      {spouseOf ? (
+        <>
+          <input type="hidden" name="spouseOf" value={spouseOf.id} />
+          <Alert>
+            <AlertTriangle />
+            <AlertTitle>Nouvelle conjointe / nouveau conjoint</AlertTitle>
+            <AlertDescription>
+              Cette fiche sera liée à {spouseOf.name} après enregistrement. Conservez l&apos;orthographe
+              de la source et ne fusionnez pas un homonyme.
+            </AlertDescription>
+          </Alert>
+        </>
+      ) : null}
       {state?.error ? (
         <Alert variant="destructive">
           <AlertTriangle />
@@ -55,11 +70,11 @@ export function PersonForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Prénom" name="firstName" required />
-        <Field label="Nom" name="lastName" defaultValue="TOURÉ" required />
+        <Field label="Nom" name="lastName" defaultValue={spouseOf ? "" : "TOURÉ"} required />
         <Field label="Autres noms" name="otherNames" />
         <div className="grid gap-2">
           <Label htmlFor="gender">Genre</Label>
-          <select id="gender" name="gender" className={selectClass} defaultValue="UNKNOWN">
+          <select id="gender" name="gender" className={selectClass} defaultValue={spouseOf ? "FEMALE" : "UNKNOWN"}>
             <option value="UNKNOWN">Non précisé</option>
             <option value="FEMALE">Féminin</option>
             <option value="MALE">Masculin</option>

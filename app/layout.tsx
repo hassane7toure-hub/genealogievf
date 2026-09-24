@@ -1,5 +1,4 @@
-import { ClerkProvider } from "@clerk/nextjs";
-import { shadcn } from "@clerk/ui/themes";
+import { HeritageClerkProvider } from "@/components/heritage/heritage-clerk-provider";
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Figtree, Geist_Mono } from "next/font/google";
 import { HeritageWatermark } from "@/components/brand/heritage-watermark";
@@ -47,12 +46,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={cn("h-full", "antialiased", figtree.variable, cormorant.variable, geistMono.variable, "font-sans")}
     >
       <body className="relative min-h-full flex flex-col">
-        <ClerkProvider appearance={{ theme: shadcn }}>
+        <HeritageClerkProvider>
           <HeritageWatermark />
           <div className="relative z-10 flex min-h-full flex-1 flex-col">
             <AppProviders>{children}</AppProviders>
           </div>
-        </ClerkProvider>
+        </HeritageClerkProvider>
       </body>
     </html>
   );
