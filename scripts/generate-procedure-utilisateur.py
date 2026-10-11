@@ -111,13 +111,13 @@ def build() -> None:
     footer = section.footer
     fp = footer.paragraphs[0]
     fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    fr = fp.add_run("TOURÉ FAMILY HERITAGE — Procédure utilisateur — Document interne")
+    fr = fp.add_run("TOURÉ FAMILY HERITAGE — Modules de formation utilisateur et administrateur — Document interne")
     set_run(fr, size=8, color=MUTED)
 
     add_para(doc, "TOURÉ FAMILY HERITAGE", size=12, bold=True, color=UMBER, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=4)
     add_para(
         doc,
-        "Procédure d’inscription, de connexion et de saisie généalogique",
+        "Modules de formation — utilisateur et administrateur",
         size=22,
         bold=True,
         color=UMBER,
@@ -126,19 +126,19 @@ def build() -> None:
     )
     add_para(
         doc,
-        "Guide étape par étape pour chaque type de profil, l’ajout d’une personne, la constitution d’une lignée et la modification des informations.",
+        "Module utilisateur : consulter, saisir une lignée, déposer un héritage. Module administrateur : promouvoir les profils, valider, publier.",
         size=12,
         italic=True,
         color=MUTED,
         align=WD_ALIGN_PARAGRAPH.CENTER,
         space_after=16,
     )
-    add_para(doc, f"Version 1.0  ·  {date.today().strftime('%d/%m/%Y')}  ·  Application web http://localhost:3000", size=10, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=18)
+    add_para(doc, f"Version 2.0  ·  {date.today().strftime('%d/%m/%Y')}  ·  https://genealogievf.vercel.app  ·  formation locale http://localhost:3000", size=10, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=18)
 
     add_heading_custom(doc, "1. Objet du document", 1)
     add_para(
         doc,
-        "Ce document décrit, dans l’ordre d’utilisation, comment un visiteur, un membre de la famille, un descendant direct, un membre du comité ou un administrateur s’inscrit, se connecte, consulte l’arbre, ajoute des fiches et rattache une lignée. Les libellés de boutons et les adresses correspondent à l’application actuelle.",
+        "Ce document comporte deux modules. Le module utilisateur explique comment un visiteur, un invité, un membre ou un descendant consulte l’arbre à partir d’une personne, ajoute une fiche, lie un conjoint et dépose une source, un témoignage ou un document. Le module administrateur explique comment le comité et l’administration promeuvent un profil, tranchent une validation avec un procès-verbal, publient une pièce publique et tiennent la caisse. Les libellés et les adresses correspondent à l’application actuelle.",
     )
     add_note(
         doc,
@@ -163,11 +163,20 @@ def build() -> None:
             ["Nouvelle personne", "http://localhost:3000/espace/personnes/nouvelle", "Rôle d’écriture"],
             ["Arbre interne", "http://localhost:3000/espace/arbre", "Compte connecté"],
             ["Recherche interne", "http://localhost:3000/espace/recherche", "Compte connecté"],
+            ["Réunions", "http://localhost:3000/espace/reunions", "Membre reconnu (C1)"],
+            ["Événements", "http://localhost:3000/espace/evenements", "Membre reconnu (C1)"],
+            ["Discussions", "http://localhost:3000/espace/discussions", "Membre reconnu (C1)"],
+            ["Caisse", "http://localhost:3000/espace/caisse", "Comité et administration"],
+            ["Notifications", "http://localhost:3000/espace/notifications", "Compte connecté"],
+            ["Héritage — sources", "http://localhost:3000/espace/heritage", "Membre reconnu (C1)"],
+            ["Témoignages", "http://localhost:3000/espace/heritage/temoignages", "Membre reconnu (C1)"],
+            ["Documents", "http://localhost:3000/espace/heritage/documents", "Membre reconnu (C1)"],
+            ["Validation", "http://localhost:3000/espace/heritage/validation", "Lecture C1 ; décision : comité"],
         ],
     )
     add_para(
         doc,
-        "En production, remplacer localhost:3000 par l’adresse publique du site. Les pages /espace exigent une connexion : un visiteur non connecté est renvoyé vers /sign-in.",
+        "Les mêmes chemins fonctionnent sur le site publié https://genealogievf.vercel.app. Les pages /espace exigent une connexion : un visiteur non connecté est renvoyé vers /sign-in.",
     )
 
     add_heading_custom(doc, "3. Les types de profils", 1)
@@ -196,7 +205,7 @@ def build() -> None:
                 "Membre de la Grande Famille",
                 "FAMILY_MEMBER",
                 "C0 et C1 (listes Sanankoro SRC-002 et SRC-003, vie familiale interne).",
-                "Créer une fiche (brouillon) et indiquer un père / une mère déjà existants.",
+                "Créer une fiche, lier un conjoint, animer la vie de famille, déposer un brouillon d’héritage et le soumettre. Pas la caisse, pas la décision du comité.",
             ],
             [
                 "Descendant direct",
@@ -208,13 +217,13 @@ def build() -> None:
                 "Comité restreint",
                 "COMMITTEE_MEMBER",
                 "Jusqu’à C3 (informations sensibles).",
-                "Créer des fiches. Destiné à la validation familiale.",
+                "Tout ce que fait un membre, plus le procès-verbal, l’approbation, la publication C0 et la caisse.",
             ],
             [
                 "Administration",
                 "ADMIN",
                 "Jusqu’à C3.",
-                "Créer des fiches. Premier compte technique de la plateforme.",
+                "Comme le comité. En plus : promouvoir les rôles (Prisma Studio ou variable d’amorçage).",
             ],
         ],
     )
@@ -338,7 +347,7 @@ def build() -> None:
             "Ouvrir http://localhost:3000/ sans cliquer sur Connexion.",
             "Naviguer dans Histoire, Généalogie, Arbre, Recherche.",
             "Constater que seules les fiches C0 apparaissent (environ 30 personnes après l’import Excel).",
-            "Sur /arbre, l’arbre descendant public montre Lanfia TOURÉ et son fils documenté Samory TOURÉ. Les autres fiches C0 non encore rattachées restent sous « Personnes non rattachées à la racine ».",
+            "Sur /arbre, rien ne s’affiche tant qu’une personne n’est pas choisie. Dans « Afficher l’arbre à partir de », filtrer un nom, choisir la personne, puis cliquer « Afficher ». L’arbre commence à cette personne et montre sa descendance. « Lignée complète » montre toute la lignée publique, de la racine jusqu’aux descendants visibles.",
         ],
     )
     add_heading_custom(doc, "6.2 Compte existant (tous les profils authentifiés)", 2)
@@ -350,7 +359,7 @@ def build() -> None:
             "Saisir l’identifiant et le mot de passe du profil (tableau § 4).",
             "Valider. La redirection mène à /espace.",
             "Contrôler le tableau de bord : carte « Autorisation » (rôle), statut généalogique, accès maximal, nombre de fiches visibles.",
-            "Utiliser le menu : Tableau de bord, Personnes, Arbre, Recherche, Site public.",
+            "Utiliser le menu : Tableau de bord, Personnes, Arbre, Réunions, Événements, Discussions, Caisse, Notifications, Héritage, Recherche, Site public. La caisse et les décisions de validation restent réservées au comité et à l’administration.",
             "Pour se déconnecter : cliquer sur l’avatar Clerk (UserButton) puis Sign out.",
         ],
     )
@@ -430,6 +439,12 @@ def build() -> None:
         ],
     )
 
+    add_heading_custom(doc, "Module utilisateur", 1)
+    add_para(
+        doc,
+        "Les sections 8 à 15 s’adressent à la personne qui consulte et qui saisit : visiteur, membre de la Grande Famille ou descendant direct. Le comité et l’administration suivent aussi ces étapes, puis le module administrateur à partir du § 16.",
+    )
+
     add_heading_custom(doc, "8. Insertion d’une nouvelle personne sur le site", 1)
     add_para(
         doc,
@@ -497,8 +512,8 @@ def build() -> None:
             "Créer le conjoint s’il est nommé par une source, sans le fusionner avec un homonyme (Mâ Sokona ≠ Mâ Sokonassé ≠ Mâ Sokonossé TOURE).",
             "Pour chaque enfant de cette génération : Ajouter une personne, renseigner l’identité, choisir le père et la mère dans les listes, enregistrer.",
             "Passer à la génération suivante uniquement lorsque les parents existent déjà dans la liste.",
-            "Vérifier l’arbre interne : /espace/arbre. La vue part de Lanfia. Un enfant de Lanfia apparaît sous sa fiche. Un descendant plus bas n’apparaît que si la chaîne de pères/mères est complète.",
-            "Les personnes sans lien vers Lanfia restent dans « Personnes non rattachées à la racine ». C’est normal tant que la filiation n’est pas documentée.",
+            "Vérifier l’arbre interne : /espace/arbre. Choisir le parent dans la liste, puis « Afficher ». L’arbre commence à cette personne. Un descendant n’apparaît que si la chaîne de pères et de mères est complète.",
+            "« Lignée complète » montre l’ensemble depuis la racine. Les personnes sans lien vers cette racine restent dans « Non rattachés à la racine ». C’est normal tant que la filiation n’est pas documentée.",
         ],
     )
     add_heading_custom(doc, "9.2 Exemple guidé — ajouter un petit-fils de Lanfia", 2)
@@ -513,7 +528,7 @@ def build() -> None:
             "Prénom : Massé Mamadi. Nom : TOURE. Genre : Masculin. Branche : Lignée de Lanfia. Confidentialité : C1. Confiance : Faible ou Moyenne.",
             "Père : Samory TOURÉ (Almamy Samory TOURE). Mère : Non documenté (sauf source explicite).",
             "Biographie : indiquer la source (« Transcription SRC-002, à valider. Lien vers Samory non confirmé par REL-xxx. »).",
-            "Créer la fiche. Ouvrir /espace/arbre : sous Lanfia apparaît Samory, puis le nouvel enfant si le père choisi est bien Samory.",
+            "Créer la fiche. Ouvrir /espace/arbre, choisir Samory TOURÉ, puis « Afficher » : l’enfant apparaît dans sa descendance si le père choisi est bien Samory. Depuis la fiche, le bouton « Voir l’arbre depuis cette personne » ouvre la même vue.",
             "Répéter pour chaque frère ou sœur documenté, un par un. Ne jamais coller une liste entière sans contrôle d’homonymie.",
         ],
     )
@@ -523,8 +538,8 @@ def build() -> None:
         [
             "Créer d’abord le père commun s’il n’existe pas (ici Samorigbé existe déjà).",
             "Ajouter la personne : Prénom du frère, Nom TOURÉ, Père = Samorigbé, Mère = Mâ Dianka si la source le dit.",
-            "Cette personne n’apparaîtra pas sous Lanfia dans l’arbre descendant (elle n’est pas un enfant de Lanfia). Elle apparaît dans Personnes et sur la fiche de Samorigbé, rubrique Enfants.",
-            "Pour voir cette branche dans l’arbre descendant public, il faudrait que la racine soit l’ancêtre commun (Samorigbé ou Lankafia). Aujourd’hui la racine officielle reste Lanfia (isRoot).",
+            "Cette personne n’apparaît pas sous Lanfia (elle n’est pas un enfant de Lanfia). Elle apparaît dans Personnes et sur la fiche de Samorigbé, rubrique Enfants.",
+            "Pour afficher cette branche, ouvrir l’arbre et choisir Samorigbé ou Lankafia comme personne de départ. « Lignée complète » reste ancrée sur la racine officielle Lanfia (isRoot).",
         ],
     )
     add_note(
@@ -537,7 +552,7 @@ def build() -> None:
     add_heading_custom(doc, "10.1 Ce que le site permet aujourd’hui", 2)
     add_para(
         doc,
-        "La fiche personne (/espace/personnes/[id] ou /genealogie/[id]) est en lecture : biographie, parents, conjoints, enfants, sources, badges de confidentialité, confiance et validation. Il n’y a pas encore de bouton « Modifier la fiche » ni de formulaire d’édition sur le web. La création seule est ouverte aux rôles d’écriture.",
+        "La fiche personne reste en lecture pour l’identité, la biographie et les liens déjà enregistrés : il n’y a pas de bouton « Modifier la fiche ». Depuis la fiche interne, un rôle d’écriture peut ajouter un conjoint (« Lier le conjoint » ou « Créer une nouvelle fiche et la lier »). Une source, un témoignage ou un document se dépose dans Héritage, pas en réécrivant la fiche. La correction d’un père, d’une mère ou d’un texte déjà publié reste dans Prisma Studio.",
     )
     add_heading_custom(doc, "10.2 Modifier son propre compte (identité de connexion)", 2)
     add_steps(
@@ -561,7 +576,7 @@ def build() -> None:
             "Ne pas fusionner deux lignes pour « faire plus propre » (Lanfia ≠ Lankafia).",
             "Pour changer un père ou une mère : modèle ParentChild. Créer une ligne (parentId, childId, parentRole FATHER ou MOTHER) ou supprimer un lien erroné. Unique : un seul père et une seule mère par type de rôle.",
             "Pour un conjoint : modèle SpouseRelationship. L’identifiant personIdA doit être inférieur (ordre alphabétique) à personIdB.",
-            "Pour une source : modèle Source puis PersonSource (liaison personne–source + notes, par ex. « N° source 12 »).",
+            "Pour une nouvelle source, préférer l’écran Héritage (§ 14). Prisma Studio (Source puis PersonSource) ne sert qu’à corriger une source déjà enregistrée.",
             "Recharger la fiche sur le site pour contrôler le résultat.",
         ],
     )
@@ -586,41 +601,162 @@ def build() -> None:
         ],
     )
 
-    add_heading_custom(doc, "11. Consultation et recherche après saisie", 1)
+    add_heading_custom(doc, "11. Module utilisateur — consulter et rechercher", 1)
+    add_para(doc, "Public : visiteur, invité, membre, descendant. Chacun ne voit que son niveau C0 à C3.")
     add_steps(
         doc,
         [
-            "Liste interne : /espace/personnes — cartes filtrées selon C0–C3 de l’utilisateur.",
-            "Fiche interne : cliquer une carte. Vérifier Parents / Conjoints / Enfants.",
-            "Arbre interne : /espace/arbre — plus de nœuds qu’en public si le compte lit C1 (enfants Sanankoro de Lanfia).",
-            "Recherche interne : /espace/recherche — saisir un prénom, un nom, un autre nom ou une ville. Les résultats ne dépassent jamais l’autorisation.",
-            "Côté public, la même personne n’apparaît que si confidentialityLevel = C0.",
+            "Liste interne : /espace/personnes — cartes filtrées selon le niveau du compte.",
+            "Fiche interne : ouvrir une carte. Vérifier Parents, Conjoints, Enfants et Sources.",
+            "Arbre : /espace/arbre ou /arbre. Choisir une personne, cliquer « Afficher ». L’affichage commence à cette personne. « Lignée complète » montre toute la lignée autorisée.",
+            "Depuis une fiche, « Voir l’arbre depuis cette personne » ouvre directement cette descendance.",
+            "Recherche interne : /espace/recherche — prénom, nom, autre nom ou ville. Les résultats ne dépassent jamais l’autorisation.",
+            "Côté public, une personne n’apparaît que si son niveau est C0.",
         ],
     )
 
-    add_heading_custom(doc, "12. Contrôles avant de quitter une saisie", 1)
+    add_heading_custom(doc, "12. Module utilisateur — lier un conjoint", 1)
+    add_para(doc, "Condition : rôle FAMILY_MEMBER, COMMITTEE_MEMBER ou ADMIN. Le conjoint doit déjà exister, ou être créé puis lié. On ne fusionne pas les homonymes.")
+    add_steps(
+        doc,
+        [
+            "Ouvrir la fiche interne de la personne.",
+            "Dans « Ajouter un conjoint », choisir une fiche existante, le type de lien (Mariage, Union, Autre), la date si elle est connue, et le lieu.",
+            "Cliquer « Lier le conjoint ». Le lien apparaît dans Conjoints des deux fiches.",
+            "Si la conjointe ou le conjoint n’existe pas encore : « Créer une nouvelle fiche et la lier ». Le formulaire de création s’ouvre avec le rattachement prévu.",
+        ],
+    )
+
+    add_heading_custom(doc, "13. Module utilisateur — vie de famille", 1)
+    add_para(doc, "Réunions, événements, discussions et notifications exigent un accès C1 (membre, descendant direct avec ce niveau, comité, administration). Un invité C0 voit le refus d’accès.")
+    add_heading_custom(doc, "13.1 Réunions et événements", 2)
+    add_steps(
+        doc,
+        [
+            "Menu Réunions. Renseigner Titre, Date et heure, Lieu, Ordre du jour, puis « Publier la réunion ».",
+            "Menu Événements. Choisir le type (mariage, funérailles, patrimoine, autre), puis « Publier l’événement ».",
+        ],
+    )
+    add_heading_custom(doc, "13.2 Discussions et vote", 2)
+    add_steps(
+        doc,
+        [
+            "Menu Discussions. Saisir le sujet et le texte, puis « Ouvrir la discussion ».",
+            "Ouvrir le sujet. Commenter avec « Commenter ».",
+            "Voter une seule fois, de façon nominative : Pour, Contre ou Abstention. Le décompte s’affiche sur la discussion.",
+        ],
+    )
+
+    add_heading_custom(doc, "14. Module utilisateur — déposer une pièce d’héritage", 1)
+    add_para(
+        doc,
+        "Un témoignage oral n’est pas un fait établi. Le dépôt crée un brouillon. Seul le comité peut l’approuver, et seulement avec un procès-verbal. La page Histoire n’affiche ensuite que les pièces de niveau C0 déjà publiées.",
+    )
+    add_steps(
+        doc,
+        [
+            "Menu Héritage. Onglets : Sources, Témoignages, Documents, Validation.",
+            "Source : titre, type, auteur, adresse, personne liée, description, confidentialité et confiance, puis « Enregistrer le brouillon ».",
+            "Témoignage : titre, personne qui témoigne, lieu, période, étape du recueil (brut, transcrit ou relu), résumé, transcription, audio ou vidéo. La confiance de départ est faible.",
+            "Document : nature, date indiquée, auteur, lieu de conservation, fichier, personne liée.",
+            "Choisir C0 seulement si la pièce pourra être publique après validation. Le défaut est C1, Grande Famille.",
+            "Sur la carte du brouillon, ou après un rejet, cliquer « Soumettre au comité ».",
+        ],
+    )
+
+    add_heading_custom(doc, "15. Contrôles avant de quitter une saisie", 1)
     add_table(
         doc,
         ["Contrôle", "Question à se poser"],
         [
             ["Source", "Ai-je indiqué d’où vient l’information (SRC-001, témoignage, archive) ?"],
+            ["Témoignage", "Ai-je laissé le récit en brouillon, sans le présenter comme un fait ?"],
             ["Homonyme", "Ai-je ouvert les fiches existantes avant d’en créer une autre ?"],
-            ["Lien", "Le père / la mère est-il écrit dans une source, ou l’ai-je déduit ?"],
+            ["Lien", "Le père, la mère ou le conjoint est-il écrit dans une source, ou l’ai-je déduit ?"],
             ["Fusion", "Ai-je évité de mélanger Lanfia et Lankafia, Sokona et Sokonassé ?"],
-            ["Confidentialité", "Le niveau C0/C1/C2/C3 est-il justifié ? Une liste familiale brute n’est pas forcément publique."],
-            ["Validation", "La fiche est-elle restée en brouillon tant que le comité n’a pas statué ?"],
-            ["Audit", "Une création a-t-elle bien eu lieu sous un compte nommé, pas sous un partage de mot de passe ?"],
+            ["Confidentialité", "Le niveau C0 à C3 est-il justifié ? Une liste familiale brute n’est pas publique."],
+            ["Validation", "La fiche ou la pièce est-elle restée en brouillon tant que le comité n’a pas statué ?"],
+            ["Audit", "La création a-t-elle eu lieu sous un compte nommé, sans partage de mot de passe ?"],
         ],
     )
 
-    add_heading_custom(doc, "13. Synthèse des limites actuelles de l’interface", 1)
+    add_heading_custom(doc, "16. Module administrateur — promouvoir un profil", 1)
     add_para(
         doc,
-        "Pour éviter toute confusion dans les formations : le site permet aujourd’hui l’inscription, la connexion, la consultation filtrée, la recherche et la création d’une fiche avec père et mère. Il ne permet pas encore, à l’écran, de modifier une fiche, de gérer les utilisateurs, de lier un compte à une Personne, de saisir un conjoint, d’ajouter une source, ni de faire voter le comité. Ces opérations passent par Clerk (compte) et Prisma Studio (données), comme décrit aux § 7 et 10.",
+        "Il n’existe pas d’écran « Créer un utilisateur » ni « Changer le rôle » dans l’espace famille. L’administration technique passe par Clerk pour le compte, puis par Prisma Studio pour le rôle. La procédure détaillée est au § 4.1 et au § 7.",
+    )
+    add_steps(
+        doc,
+        [
+            "Faire inscrire la personne (§ 5) ou la créer dans le tableau de bord Clerk (§ 7.2).",
+            "Après sa première visite de /espace, ouvrir Prisma Studio (npm run db:studio, http://localhost:5555), modèle User.",
+            "Attribuer role et genealogicalStatus. Exemple comité : COMMITTEE_MEMBER et FAMILY_MEMBER.",
+            "Demander une reconnexion. Le tableau de bord doit afficher le nouveau rôle et l’accès C1, C2 ou C3.",
+            "Le premier administrateur peut être promu par BOOTSTRAP_ADMIN_CLERK_USER_ID tant que son rôle est encore GUEST.",
+            "Ne pas lier User.personId à la main sans décision : l’écran de rattachement compte–fiche n’existe pas encore. Noter l’e-mail et l’identifiant de la fiche.",
+        ],
+    )
+
+    add_heading_custom(doc, "17. Module administrateur — valider, procès-verbal et publication", 1)
+    add_para(doc, "Réservé au comité restreint et à l’administration. Un membre peut soumettre et lire le suivi des pièces qu’il a le droit de voir. Il ne tranche pas.")
+    add_heading_custom(doc, "17.1 Rédiger le procès-verbal", 2)
+    add_steps(
+        doc,
+        [
+            "Ouvrir Héritage → Validation.",
+            "Dans « Rédiger un procès-verbal », saisir le titre, la date, les membres présents, la décision et la mention de signature.",
+            "Joindre l’adresse du fichier si le PV numérisé existe.",
+            "Cocher « Publier ce procès-verbal » seulement s’il peut être public : il passe alors en C0. Sinon il reste interne (C1).",
+            "Cliquer « Enregistrer le procès-verbal ».",
+        ],
+    )
+    add_heading_custom(doc, "17.2 Trancher une demande", 2)
+    add_steps(
+        doc,
+        [
+            "Sur la demande en attente, choisir la décision : Demander une révision, Rejeter, ou Approuver.",
+            "L’approbation exige un procès-verbal dans la liste. Sans PV, l’enregistrement est refusé.",
+            "Écrire le motif, puis « Enregistrer la décision ».",
+            "La révision renvoie la pièce en brouillon. Le rejet la marque rejetée. L’auteur peut la soumettre de nouveau après correction.",
+            "« Commenter » place une demande soumise en examen et conserve le commentaire du comité.",
+        ],
+    )
+    add_heading_custom(doc, "17.3 Publier sur la page Histoire", 2)
+    add_steps(
+        doc,
+        [
+            "La publication n’est proposée que si la pièce est déjà approuvée et de niveau C0.",
+            "Cliquer « Publier sur la page Histoire ».",
+            "Ouvrir /histoire sans être connecté : la source, le témoignage, le document ou le procès-verbal public doit apparaître. Un témoignage publié reste présenté comme un témoignage.",
+            "Une pièce C1, C2 ou C3 approuvée reste dans l’espace famille. Elle ne va pas sur Histoire.",
+        ],
+    )
+    add_note(
+        doc,
+        "Exemple :",
+        "un membre dépose un témoignage en C0, confiance faible, puis « Soumettre au comité ». Le comité rédige le PV, choisit Approuver et ce PV, puis publie. Le visiteur voit le récit sur Histoire, avec la mention qu’il reste un témoignage.",
+    )
+
+    add_heading_custom(doc, "18. Module administrateur — caisse", 1)
+    add_para(doc, "La caisse est réservée au comité et à l’administration. Un membre de la Grande Famille voit « Caisse familiale » refusée.")
+    add_steps(
+        doc,
+        [
+            "Ouvrir /espace/caisse.",
+            "Cotisation : contributeur, montant en GNF, date, objet, puis « Ajouter ».",
+            "Dépense : libellé, montant, date, catégorie, puis « Ajouter ».",
+            "Contrôler le solde affiché. Chaque écriture est auditable. Ne pas saisir un montant sans pièce ou décision du comité.",
+        ],
+    )
+
+    add_heading_custom(doc, "19. Ce que l’écran ne fait pas encore", 1)
+    add_para(
+        doc,
+        "Le site permet l’inscription, la connexion, la consultation filtrée, l’arbre à partir d’une personne choisie, la création d’une fiche avec père et mère, le conjoint, la vie de famille, le vote nominatif, le dépôt d’héritage, la validation par le comité et la publication C0. Il ne permet pas encore, à l’écran, de modifier une fiche déjà créée, de changer un rôle, ni de lier un compte à une fiche Personne. Ces trois opérations restent celles des § 7, 10 et 16.",
     )
     add_para(
         doc,
-        "Fin du document. Pour toute évolution d’écran (bouton Modifier, administration des rôles), ce guide devra être mis à jour à la même version que l’application.",
+        "Fin des modules. Toute évolution d’écran (bouton Modifier, administration des rôles) devra mettre à jour ce guide en même temps que l’application.",
         italic=True,
         color=MUTED,
     )

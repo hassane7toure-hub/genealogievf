@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ConfidentialityBadge, ConfidenceBadge, ValidationBadge } from "@/components/heritage/status-badges";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { personDisplayName, personLifeSpan } from "@/lib/genealogy/format";
 import { genderLabel } from "@/lib/labels";
@@ -18,9 +19,11 @@ type LoadedPerson = NonNullable<Awaited<ReturnType<typeof getPersonById>>>;
 export function PersonProfile({
   person,
   profileHref,
+  treeHref,
 }: {
   person: LoadedPerson;
   profileHref: (id: string) => string;
+  treeHref?: string;
 }) {
   return (
     <article className="grid gap-6">
@@ -33,6 +36,11 @@ export function PersonProfile({
           <ConfidenceBadge level={person.confidenceLevel} />
           <ValidationBadge status={person.validationStatus} />
         </div>
+        {treeHref ? (
+          <Button asChild variant="outline" className="mt-4">
+            <Link href={treeHref}>Voir l&apos;arbre depuis cette personne</Link>
+          </Button>
+        ) : null}
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">

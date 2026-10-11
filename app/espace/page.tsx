@@ -70,7 +70,7 @@ export default async function DashboardPage() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Shortcut href="/espace/personnes" icon={Users} title="Personnes" text="Consulter et, si vous y êtes autorisé, ajouter une fiche." />
-        <Shortcut href="/espace/arbre" icon={Trees} title="Arbre" text="Naviguer depuis Lanfia TOURÉ." />
+        <Shortcut href="/espace/arbre" icon={Trees} title="Arbre" text="Choisir une personne et afficher sa descendance." />
         <Shortcut href="/espace/recherche" icon={Search} title="Recherche interne" text="Chercher dans le périmètre autorisé." />
         <Shortcut href="/espace/reunions" icon={CalendarDays} title="Réunions" text="Convocations et ordres du jour." />
         <Shortcut href="/espace/evenements" icon={Calendar} title="Événements" text="Mariages, funérailles et rendez-vous patrimoniaux." />

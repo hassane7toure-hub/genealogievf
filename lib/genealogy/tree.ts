@@ -128,6 +128,22 @@ export function buildDescendantTree(
   return walk(rootId, new Set());
 }
 
+export function prepareVisibleTree(
+  people: PersonForTree[],
+  lineageRootId: string | null | undefined,
+  requestedPersonId?: string,
+) {
+  const requested = requestedPersonId?.trim() || null;
+  if (requested && !people.some((person) => person.id === requested)) {
+    return { tree: null, detached: [], focusedId: null, startId: null, unknown: true as const };
+  }
+  const focusedId = requested;
+  const startId = focusedId ?? (lineageRootId ? findPaternalApex(people, lineageRootId) : null);
+  const tree = startId ? buildDescendantTree(people, startId, lineageRootId ?? startId) : null;
+  const detached = focusedId ? [] : unattachedPeople(people, startId);
+  return { tree, detached, focusedId, startId, unknown: false as const };
+}
+
 export function unattachedPeople(people: PersonForTree[], treeRootId: string | null): PersonForTree[] {
   if (!treeRootId) return people;
   const attached = new Set<string>();

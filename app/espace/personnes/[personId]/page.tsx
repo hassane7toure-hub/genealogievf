@@ -48,7 +48,11 @@ export default async function FamilyPersonPage({
 
   return (
     <div className="grid gap-6">
-      <PersonProfile person={value.person} profileHref={(id) => `/espace/personnes/${id}`} />
+      <PersonProfile
+        person={value.person}
+        profileHref={(id) => `/espace/personnes/${id}`}
+        treeHref={`/espace/arbre?personne=${value.person.id}`}
+      />
       {canWriteGenealogy(actor) ? (
         <SpouseForm
           personId={value.person.id}
