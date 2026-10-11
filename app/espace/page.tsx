@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Trees, Users, Search, Shield, CalendarDays, Calendar, MessagesSquare, Wallet, Bell } from "lucide-react";
+import { Trees, Users, Search, Shield, CalendarDays, Calendar, MessagesSquare, Wallet, Bell, ScrollText } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SetupBanner } from "@/components/heritage/setup-banner";
@@ -76,6 +76,7 @@ export default async function DashboardPage() {
         <Shortcut href="/espace/evenements" icon={Calendar} title="Événements" text="Mariages, funérailles et rendez-vous patrimoniaux." />
         <Shortcut href="/espace/discussions" icon={MessagesSquare} title="Discussions" text="Débattre et voter, voix nominative." />
         <Shortcut href="/espace/caisse" icon={Wallet} title="Caisse" text="Cotisations et dépenses du comité." />
+        <Shortcut href="/espace/heritage" icon={ScrollText} title="Héritage" text="Sources, témoignages, documents et validation du comité." />
         <Shortcut href="/espace/notifications" icon={Bell} title="Notifications" text={`${value.unread} alerte${value.unread > 1 ? "s" : ""} non lue${value.unread > 1 ? "s" : ""}.`} />
       </div>
       {value.meetings.length > 0 ? (

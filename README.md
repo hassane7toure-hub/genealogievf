@@ -34,5 +34,6 @@ Ouvrez [http://localhost:3000](http://localhost:3000).
 - Arbre descendant depuis **Lanfia TOURÉ**
 - Tableau de bord authentifié
 - Vie de famille (V2) : réunions, événements, discussions/votes, caisse, notifications
+- Héritage (MVP 3) : sources, témoignages oraux, documents, médias, comité de validation et procès-verbaux
 
-Les modules héritage avancé, réunions, cotisations et votes viendront ensuite, sans réécrire le schéma de base.
+La plateforme avancée (V3) viendra ensuite, sans réécrire le schéma de base.

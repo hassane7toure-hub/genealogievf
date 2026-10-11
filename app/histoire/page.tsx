@@ -1,11 +1,27 @@
 import type { Metadata } from "next";
 import { SiteFooter, SiteHeader } from "@/components/layout/site-chrome";
+import { loadGenealogy } from "@/lib/genealogy/safe";
+import { confidenceLabel, documentKindLabel, sourceTypeLabel } from "@/lib/heritage/labels";
+import { listPublicHeritage } from "@/lib/heritage/queries";
 
 export const metadata: Metadata = {
   title: "Histoire",
 };
 
-export default function HistoryPage() {
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(date);
+}
+
+export default async function HistoryPage() {
+  const { value } = await loadGenealogy(() => listPublicHeritage(), {
+    testimonies: [],
+    documents: [],
+    sources: [],
+    reports: [],
+  });
+  const hasPublications =
+    value.sources.length + value.testimonies.length + value.documents.length + value.reports.length > 0;
+
   return (
     <>
       <SiteHeader />
@@ -34,6 +50,64 @@ export default function HistoryPage() {
             et autorisation côté serveur.
           </p>
         </div>
+        {hasPublications ? (
+          <div className="mt-10 grid gap-8">
+            {value.sources.length > 0 ? (
+              <section className="grid gap-4">
+                <h2 className="font-heading text-2xl">Sources publiées</h2>
+                {value.sources.map((source) => (
+                  <article key={source.id} className="grid gap-1">
+                    <h3 className="font-medium">{source.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {sourceTypeLabel(source.type)} · confiance {confidenceLabel(source.confidenceLevel).toLowerCase()}
+                    </p>
+                    {source.description ? <p className="whitespace-pre-wrap text-muted-foreground">{source.description}</p> : null}
+                  </article>
+                ))}
+              </section>
+            ) : null}
+            {value.testimonies.length > 0 ? (
+              <section className="grid gap-4">
+                <h2 className="font-heading text-2xl">Témoignages publiés</h2>
+                {value.testimonies.map((testimony) => (
+                  <article key={testimony.id} className="grid gap-1">
+                    <h3 className="font-medium">{testimony.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Témoignage de {testimony.speakerName} · confiance {confidenceLabel(testimony.confidenceLevel).toLowerCase()}. Ce récit reste un témoignage, même après publication.
+                    </p>
+                    {testimony.summary ? <p className="whitespace-pre-wrap text-muted-foreground">{testimony.summary}</p> : null}
+                  </article>
+                ))}
+              </section>
+            ) : null}
+            {value.documents.length > 0 ? (
+              <section className="grid gap-4">
+                <h2 className="font-heading text-2xl">Documents publiés</h2>
+                {value.documents.map((document) => (
+                  <article key={document.id} className="grid gap-1">
+                    <h3 className="font-medium">{document.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {documentKindLabel(document.kind)} · confiance {confidenceLabel(document.confidenceLevel).toLowerCase()}
+                    </p>
+                    {document.description ? <p className="whitespace-pre-wrap text-muted-foreground">{document.description}</p> : null}
+                  </article>
+                ))}
+              </section>
+            ) : null}
+            {value.reports.length > 0 ? (
+              <section className="grid gap-4">
+                <h2 className="font-heading text-2xl">Procès-verbaux publics</h2>
+                {value.reports.map((report) => (
+                  <article key={report.id} className="grid gap-1">
+                    <h3 className="font-medium">{report.title}</h3>
+                    <p className="text-sm text-muted-foreground">{formatDate(report.meetingDate)}</p>
+                    <p className="whitespace-pre-wrap text-muted-foreground">{report.decision}</p>
+                  </article>
+                ))}
+              </section>
+            ) : null}
+          </div>
+        ) : null}
       </main>
       <SiteFooter />
     </>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Trees, Users, Search, LayoutDashboard, BookOpen, CalendarDays, Calendar, MessagesSquare, Wallet, Bell } from "lucide-react";
+import { Trees, Users, Search, LayoutDashboard, BookOpen, CalendarDays, Calendar, MessagesSquare, Wallet, Bell, ScrollText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -14,6 +14,7 @@ const links = [
   { href: "/espace/discussions", label: "Discussions", icon: MessagesSquare },
   { href: "/espace/caisse", label: "Caisse", icon: Wallet },
   { href: "/espace/notifications", label: "Notifications", icon: Bell },
+  { href: "/espace/heritage", label: "Héritage", icon: ScrollText },
   { href: "/espace/recherche", label: "Recherche", icon: Search },
   { href: "/histoire", label: "Site public", icon: BookOpen },
 ];

@@ -114,6 +114,12 @@ model User {
   discussionComments  DiscussionComment[]
   votes               Vote[]
   notifications       Notification[]
+  oralTestimonies     OralTestimony[]
+  historicalDocuments HistoricalDocument[]
+  meetingReports      MeetingReport[]
+  validationRequests  ValidationRequest[]
+  validationComments  ValidationComment[]
+  validationDecisions ValidationDecision[]
 
   @@index([role])
   @@index([genealogicalStatus])
@@ -135,6 +141,7 @@ model FamilyBranch {
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
   people                Person[]
+  documents             HistoricalDocument[]
 
   @@index([confidentialityLevel])
 }
@@ -176,6 +183,9 @@ model Person {
   spouseLinksAsA        SpouseRelationship[]  @relation("SpouseA")
   spouseLinksAsB        SpouseRelationship[]  @relation("SpouseB")
   sources               PersonSource[]
+  oralTestimonies       OralTestimony[]
+  historicalDocuments   HistoricalDocument[]
+  heritageMedia         HeritageMedia[]
 
   @@index([lastName, firstName])
   @@index([lastName])
@@ -237,12 +247,14 @@ model Source {
   publishedAtText       String?
   confidentialityLevel  ConfidentialityLevel  @default(C0)
   confidenceLevel       ConfidenceLevel       @default(MEDIUM)
+  validationStatus      ValidationStatus      @default(DRAFT)
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
   people                PersonSource[]
 
   @@index([type])
   @@index([confidentialityLevel])
+  @@index([validationStatus])
 }
 
 model PersonSource {
@@ -441,4 +453,196 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// MVP 3 — Héritage : témoignages, archives, médias, validation, PV
+// Un témoignage n'est pas un fait. L'approbation exige un procès-verbal.
+// ---------------------------------------------------------------------------
+
+enum TestimonyStage {
+  RAW
+  TRANSCRIBED
+  REVIEWED
+  VALIDATED
+  PUBLISHED
+}
+
+enum DocumentKind {
+  HISTORICAL
+  FAMILY_RECORD
+  PHOTO
+  MANUSCRIPT
+  ADMINISTRATIVE
+  GENEALOGICAL
+  BOOK
+  LETTER
+  MAP
+  OTHER
+}
+
+enum MediaKind {
+  PHOTO
+  AUDIO
+  VIDEO
+  DOCUMENT
+  OTHER
+}
+
+enum HeritageTarget {
+  SOURCE
+  TESTIMONY
+  DOCUMENT
+}
+
+enum DecisionKind {
+  APPROVED
+  REJECTED
+  REVISION
+}
+
+model OralTestimony {
+  id                    String                @id @default(cuid())
+  title                 String
+  speakerName           String
+  recordedAt            DateTime?
+  location              String?
+  transcript            String?
+  audioUrl              String?
+  videoUrl              String?
+  summary               String?
+  historicalPeriod      String?
+  stage                 TestimonyStage        @default(RAW)
+  confidenceLevel       ConfidenceLevel       @default(LOW)
+  validationStatus      ValidationStatus      @default(DRAFT)
+  confidentialityLevel  ConfidentialityLevel  @default(C1)
+  personId              String?
+  person                Person?               @relation(fields: [personId], references: [id], onDelete: SetNull)
+  authorUserId          String?
+  author                User?                 @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+  media                 HeritageMedia[]
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([confidentialityLevel])
+  @@index([validationStatus])
+  @@index([stage])
+  @@index([personId])
+}
+
+model HistoricalDocument {
+  id                    String                @id @default(cuid())
+  title                 String
+  description           String?
+  dateText              String?
+  authorName            String?
+  archiveLocation       String?
+  kind                  DocumentKind          @default(OTHER)
+  historicalPeriod      String?
+  fileUrl               String?
+  confidenceLevel       ConfidenceLevel       @default(MEDIUM)
+  validationStatus      ValidationStatus      @default(DRAFT)
+  confidentialityLevel  ConfidentialityLevel  @default(C1)
+  personId              String?
+  person                Person?               @relation(fields: [personId], references: [id], onDelete: SetNull)
+  familyBranchId        String?
+  familyBranch          FamilyBranch?         @relation(fields: [familyBranchId], references: [id], onDelete: SetNull)
+  authorUserId          String?
+  author                User?                 @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+  media                 HeritageMedia[]
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([kind])
+  @@index([confidentialityLevel])
+  @@index([validationStatus])
+  @@index([personId])
+}
+
+model HeritageMedia {
+  id                    String                @id @default(cuid())
+  title                 String
+  kind                  MediaKind             @default(OTHER)
+  url                   String
+  caption               String?
+  confidentialityLevel  ConfidentialityLevel  @default(C1)
+  personId              String?
+  person                Person?               @relation(fields: [personId], references: [id], onDelete: SetNull)
+  testimonyId           String?
+  testimony             OralTestimony?        @relation(fields: [testimonyId], references: [id], onDelete: Cascade)
+  documentId            String?
+  document              HistoricalDocument?   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt             DateTime              @default(now())
+
+  @@index([confidentialityLevel])
+  @@index([personId])
+  @@index([testimonyId])
+  @@index([documentId])
+}
+
+model MeetingReport {
+  id                    String                @id @default(cuid())
+  title                 String
+  meetingDate           DateTime              @db.Date
+  membersText           String
+  decision              String
+  signatureNote         String?
+  fileUrl               String?
+  published             Boolean               @default(false)
+  confidentialityLevel  ConfidentialityLevel  @default(C1)
+  authorUserId          String?
+  author                User?                 @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+  decisions             ValidationDecision[]
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([meetingDate])
+  @@index([confidentialityLevel])
+  @@index([published])
+}
+
+model ValidationRequest {
+  id                String               @id @default(cuid())
+  target            HeritageTarget
+  targetId          String
+  status            ValidationStatus     @default(SUBMITTED)
+  submittedByUserId String?
+  submittedBy       User?                @relation(fields: [submittedByUserId], references: [id], onDelete: SetNull)
+  comments          ValidationComment[]
+  decisions         ValidationDecision[]
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@index([target, targetId])
+  @@index([status])
+  @@index([submittedByUserId])
+}
+
+model ValidationComment {
+  id           String            @id @default(cuid())
+  requestId    String
+  request      ValidationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  authorUserId String?
+  author       User?             @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+  body         String
+  createdAt    DateTime          @default(now())
+
+  @@index([requestId])
+}
+
+model ValidationDecision {
+  id               String            @id @default(cuid())
+  requestId        String
+  request          ValidationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  kind             DecisionKind
+  notes            String?
+  meetingReportId  String?
+  meetingReport    MeetingReport?    @relation(fields: [meetingReportId], references: [id], onDelete: SetNull)
+  decidedByUserId  String?
+  decidedBy        User?             @relation(fields: [decidedByUserId], references: [id], onDelete: SetNull)
+  createdAt        DateTime          @default(now())
+
+  @@index([requestId])
+  @@index([meetingReportId])
+  @@index([decidedByUserId])
 }
